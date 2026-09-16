@@ -1,29 +1,31 @@
 {
   "format": 1,
   "restore": {
-    "/Users/md.prantoislam/Desktop/C-Project/backend/src/ECommerce.Domain/ECommerce.Domain.csproj": {}
+    "/Users/shoriful_shakil/Desktop/C-C-Sharp-Project-/backend/src/ECommerce.Domain/ECommerce.Domain.csproj": {}
   },
   "projects": {
-    "/Users/md.prantoislam/Desktop/C-Project/backend/src/ECommerce.Domain/ECommerce.Domain.csproj": {
+    "/Users/shoriful_shakil/Desktop/C-C-Sharp-Project-/backend/src/ECommerce.Domain/ECommerce.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/md.prantoislam/Desktop/C-Project/backend/src/ECommerce.Domain/ECommerce.Domain.csproj",
+        "projectUniqueName": "/Users/shoriful_shakil/Desktop/C-C-Sharp-Project-/backend/src/ECommerce.Domain/ECommerce.Domain.csproj",
         "projectName": "ECommerce.Domain",
-        "projectPath": "/Users/md.prantoislam/Desktop/C-Project/backend/src/ECommerce.Domain/ECommerce.Domain.csproj",
-        "packagesPath": "/Users/md.prantoislam/.nuget/packages/",
-        "outputPath": "/Users/md.prantoislam/Desktop/C-Project/backend/src/ECommerce.Domain/obj/",
+        "projectPath": "/Users/shoriful_shakil/Desktop/C-C-Sharp-Project-/backend/src/ECommerce.Domain/ECommerce.Domain.csproj",
+        "packagesPath": "/Users/shoriful_shakil/.nuget/packages/",
+        "outputPath": "/Users/shoriful_shakil/Desktop/C-C-Sharp-Project-/backend/src/ECommerce.Domain/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/md.prantoislam/.nuget/NuGet/NuGet.Config"
+          "/Users/shoriful_shakil/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
         ],
         "sources": {
+          "/usr/local/share/dotnet/library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net9.0": {
+            "framework": "net9.0",
             "targetAlias": "net9.0",
             "projectReferences": {}
           }
@@ -38,10 +40,11 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.300"
+        "SdkAnalysisLevel": "10.0.400"
       },
       "frameworks": {
         "net9.0": {
+          "framework": "net9.0",
           "targetAlias": "net9.0",
           "imports": [
             "net461",
@@ -54,12 +57,22 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[9.0.19, 9.0.19]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[9.0.19, 9.0.19]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.306/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.400/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
