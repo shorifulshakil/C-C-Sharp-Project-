@@ -1,0 +1,82 @@
+BACKEND CLEAN ARCHITECTURE SPECIFICATION
+=========================================
+
+Framework: ASP.NET Core Web API (.NET 9.0)
+Architecture: Clean Architecture (4 Loose-Coupled Layers)
+Solution File: backend/ECommerce.sln
+Hosting Engine: Kestrel (Default Port: 5001)
+ORM: Entity Framework Core 9.0 (Npgsql PostgreSQL Provider)
+Cloud Database: Supabase PostgreSQL (AWS ap-south-1)
+
+===============================================================================
+1. 4-LAYER CLEAN ARCHITECTURE BREAKDOWN
+===============================================================================
+
+┌─────────────────────────────────────────────────────────────┐
+│                    ECommerce.API                            │
+│                 (Presentation Layer)                        │
+│                                                             │
+│  - Controllers: Auth, Dealer, Admin, Products, Cart, Order  │
+│  - Middleware: ExceptionHandlingMiddleware, JWT Auth        │
+│  - Program.cs: Kestrel setup, CORS, Swagger, DI registration│
+│  - appsettings.json: PostgreSQL connection, JWT settings    │
+└─────────────────────────┬───────────────────────────────────┘
+                          │ (References Application & Infrastructure)
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│                ECommerce.Application                        │
+│                 (Application Layer)                         │
+│                                                             │
+│  - Services: AuthService, DealerService, OrderService,      │
+│              ProductService, AdminService, CartService,     │
+│              CategoryService                                │
+│  - DTOs: Auth, Dealer, Product, Order, Cart, Admin, Category │
+│  - Interfaces: Service contracts (IDealerService, etc.)     │
+│  - Mapping: AutoMapper profile (MappingProfile.cs)          │
+│  - Common: Models, PaginatedResult<T>                       │
+└─────────────────────────┬───────────────────────────────────┘
+                          │ (References Domain)
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│                 ECommerce.Domain                            │
+│                 (Core Domain Layer)                         │
+│                                                             │
+│  - Entities: Admin, Dealer, Customer, BaseEntity, Product,  │
+│              ProductImage, Category, Cart, CartItem, Order, │
+│              OrderItem                                      │
+│  - Enums: ApprovalStatus, OrderStatus                       │
+│  - Interfaces: IRepository<T>, IUnitOfWork,                 │
+│                IJwtTokenGenerator, IPasswordHasher          │
+│  - ZERO external framework dependencies                     │
+└─────────────────────────▲───────────────────────────────────┘
+                          │ (Implements Domain Interfaces)
+┌─────────────────────────┴───────────────────────────────────┐
+│              ECommerce.Infrastructure                        │
+│                 (Data & External Services)                  │
+│                                                             │
+│  - Data/AppDbContext.cs (EF Core PostgreSQL Context)        │
+│  - Configurations: Fluent API configs for all 10 tables     │
+│  - Repositories: Generic Repository<T>, UnitOfWork          │
+│  - Security: JwtTokenGenerator, BCrypt PasswordHasher       │
+└─────────────────────────────────────────────────────────────┘
+
+===============================================================================
+2. ARCHITECTURAL PATTERNS & PRINCIPLES
+===============================================================================
+
+1. Inversion of Control (IoC) & Dependency Injection:
+   All services, repositories, and security handlers are registered in Program.cs as scoped or transient dependencies.
+   Controllers depend solely on Application interfaces (e.g., IDealerService, IOrderService).
+
+2. Repository & Unit of Work Patterns:
+   - IRepository<T> provides standardized CRUD operations: GetByIdAsync, GetAllAsync, FindAsync, AddAsync, UpdateAsync, DeleteAsync.
+   - IUnitOfWork coordinates atomic database transactions across multiple entity sets with SaveChangesAsync().
+
+3. Data Encapsulation with DTOs:
+   Domain entities never leak into HTTP API responses. Every input and output is strongly typed via Data Transfer Objects (DTOs) with AutoMapper projections.
+
+4. Multi-Tenant Role Isolation:
+   Admins, Dealers, and Customers are completely segregated at both the database level (3 dedicated tables) and the entity level, preventing identity collisions and privilege escalation.
+
+5. Cross-Cutting Middleware:
+   ExceptionHandlingMiddleware catches unhandled exceptions globally, mapping domain-specific errors (KeyNotFoundException, UnauthorizedAccessException, InvalidOperationException) to standardized JSON error payloads.

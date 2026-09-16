@@ -1,0 +1,76 @@
+PROJECT DEVELOPMENT TIMELINE & CHANGELOG
+==========================================
+
+Project: Multi-Vendor E-Commerce Platform
+Developer: md.prantoislam
+Development Period: August 15, 2026 - September 15, 2026
+
+===============================================================================
+PHASE 1: FOUNDATION & INITIAL ARCHITECTURE (August 15, 2026)
+===============================================================================
+- Initialized 4-layer .NET 9.0 Solution (Domain, Application, Infrastructure, API).
+- Initialized Next.js 14 App Router project with TypeScript and Tailwind CSS.
+- Configured PostgreSQL database schema on Supabase cloud.
+- Implemented generic Repository pattern and Unit of Work.
+- Configured JWT Bearer token generation and BCrypt password hashing.
+- Established basic public storefront APIs (Products, Categories, Cart, Orders).
+
+===============================================================================
+PHASE 2: MULTI-TABLE DATABASE REFACTORING (August 16, 2026)
+===============================================================================
+- Refactored legacy monolithic Users table into three dedicated entity tables:
+  * 'admins': Platform governance and moderation.
+  * 'dealers': Multi-vendor identities with integrated shop details and approval flags.
+  * 'customers': End-user consumers with shipping addresses and cart relationships.
+- Updated Entity Framework Core 9.0 Fluent API configurations.
+- Implemented Core Dealer Product Approval Workflow (Status = Pending -> Approved / Rejected).
+- Implemented responsive customer storefront pages (Products, Product Detail, Cart, Checkout, Orders).
+
+===============================================================================
+PHASE 3: DEALER SALES & ANALYTICS INTEGRATION (September 10-12, 2026)
+===============================================================================
+- Created 'GET /api/dealers/sales' endpoint:
+  * Aggregates total revenue, total orders, and total items sold for each vendor.
+  * Implemented per-product breakdown with nested customer purchase histories.
+- Developed frontend '/dealer/sales' page with modern analytics cards and expandable buyer tables.
+- Added Jetro SDK and browser automation tooling integration for enhanced testing.
+
+===============================================================================
+PHASE 4: MASTER DATABASE CONSOLIDATION & ORDER STATUS FSM (September 13-14, 2026)
+===============================================================================
+- Created 'SQL/master.sql' as the single authoritative database script.
+  * Consolidated seed data into a clean, reproducible showcase dataset: 1 Admin, 1 Dealer (Alex Tech), 1 Customer (John Buyer).
+  * Seeded 550 products and high-resolution images across 8 categories.
+  * Seeded 6 realistic multi-item orders covering every lifecycle status.
+- Implemented Finite-State Machine (FSM) in 'OrderService.UpdateStatusAsync':
+  * Added validation ensuring orders only transition through valid states:
+    Pending -> Confirmed -> Processing -> Shipped -> Delivered (or Cancelled).
+  * Enforced multi-vendor tenancy checks: Dealers can only update status of orders containing their products.
+- Created 'PUT /api/dealers/orders/{id}/status' and 'PUT /api/orders/{id}/status'.
+- Added 'AvatarUrl' column to 'admins', 'dealers', and 'customers' tables.
+
+===============================================================================
+PHASE 5: UI/UX MODERNIZATION & COMPONENT ENHANCEMENTS (September 14-15, 2026)
+===============================================================================
+- Injected global 'LoadingProgress' component:
+  * Features multi-stage dynamic status labels ("Connecting to server...", "Fetching data...").
+  * Smooth cubic-bezier transitions across all Admin and Dealer dashboard pages.
+- Created 'ImageUploadInput' component:
+  * Supports drag-and-drop local file upload with Base64 encoding and external image URLs.
+  * Integrated instant live preview with remove/replace capability.
+- Extended 'Modal' component with responsive sizes ('sm' through 'full').
+- Redesigned Dealer New Product Creator ('/dealer/products/new'):
+  * Integrated ImageUploadInput, pricing margin calculator, and dynamic SKU assistance.
+- Redesigned Dealer Profile Page ('/dealer/profile') with avatar and shop logo management.
+- Implemented 'GET /api/dealers/customers' to provide vendors with a dedicated customer directory.
+- Redesigned Auth Login Page ('/auth/login') with modern gradient background and one-click demo credential selector.
+- Redesigned Admin Products Moderation page with Grouped-by-Dealer interface.
+- Redesigned Admin Dashboard UI with high-visibility KPI counters.
+
+===============================================================================
+PHASE 6: FINAL POLISH & REPORT GENERATION (September 15, 2026)
+===============================================================================
+- Verified all system builds (backend .NET 9.0 clean build, frontend Next.js clean compilation).
+- Synchronized all documentation files in 'report/' and 'Documents/'.
+- Generated comprehensive academic project report (FULL_PROJECT_REPORT.md).
+- Platform declared 100% production-ready.

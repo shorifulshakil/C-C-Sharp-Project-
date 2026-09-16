@@ -1,0 +1,43 @@
+PROJECT TECHNOLOGY STACK SPECIFICATION
+=======================================
+
+1. BACKEND STACK (.NET 9.0)
+---------------------------
+- Language: C# 13.0
+- Framework: ASP.NET Core Web API (.NET 9.0)
+- Architecture: 4-Layer Clean Architecture (Domain, Application, Infrastructure, API)
+- ORM: Entity Framework Core 9.0 (Code-First / Fluent API Mappings)
+- Database Provider: Npgsql.EntityFrameworkCore.PostgreSQL 9.0
+- Authentication: Microsoft.AspNetCore.Authentication.JwtBearer 9.0
+- Cryptography: BCrypt.Net-Next 4.0.3 (Work Factor: 11)
+- Object Mapping: AutoMapper 13.0
+- Documentation: Swashbuckle.AspNetCore 6.6 (OpenAPI / Swagger UI)
+- Server Host: Kestrel (Default Port: 5001)
+
+2. FRONTEND STACK (NEXT.JS 14)
+------------------------------
+- Framework: Next.js 14 (App Router Architecture)
+- Library: React 18.2 with Server & Client Components ('use client')
+- Language: TypeScript 5.4 (Strict Type Checking)
+- Styling: Tailwind CSS 3.4 with PostCSS & Autoprefixer
+- Icons: Lucide React (Modern iconography)
+- HTTP Client: Axios 1.7 with automated JWT interceptors
+- Toast Alerts: React Hot Toast 2.4
+- UI Utilities: clsx, tailwind-merge
+
+3. DATABASE & CLOUD INFRASTRUCTURE
+----------------------------------
+- Database Engine: PostgreSQL 14+
+- Cloud Infrastructure: Supabase Cloud (AWS ap-south-1 Mumbai Region)
+- Connection Protocol: SSL/TLS Encrypted Connection Pooler (Port 6543)
+- Migration & Seeding: SQL/master.sql (Version 3.0 Master Script)
+- Media CDN: Picsum Photos CDN & Client Base64 Data URL serialization
+
+4. PATTERNS & SECURITY PRACTICES
+--------------------------------
+- Clean Architecture / Onion Architecture
+- Repository & Unit of Work Design Patterns
+- Finite-State Machine (FSM) for Order Lifecycle Transitions
+- Tenant Isolation (Dealers can only modify their own listings and orders)
+- In-Memory & Base64 Image Processing for fast vendor previews
+- Cross-Origin Resource Sharing (CORS) configured for frontend client origin

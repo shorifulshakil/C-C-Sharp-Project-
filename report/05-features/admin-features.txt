@@ -1,0 +1,82 @@
+ADMINISTRATOR WORKSPACE FEATURES & CAPABILITIES
+=================================================
+
+Role: Admin
+Primary Demo Account: admin@ecommerce.com / Admin@123 (System Admin)
+Workspace Base Route: /admin/*
+
+===============================================================================
+1. EXECUTIVE PLATFORM DASHBOARD (/admin/dashboard)
+===============================================================================
+
+- Real-Time KPI Metric Cards:
+  * Total Platform Users (Combined count)
+  * Verified Dealers & Active Customers
+  * Total Catalog Products & Pending Moderation Queue Counter
+  * Cumulative Gross Revenue ($) and Total Platform Orders
+- Moderation Queue Alert: Instant notification banner when new vendor products are awaiting review.
+- Recent Registrations: Quick inspection of newly registered shops and buyers.
+- Integrated LoadingProgress: Animated multi-stage loading feedback.
+
+===============================================================================
+2. GROUPED PRODUCT MODERATION QUEUE (/admin/products)
+===============================================================================
+
+Core Academic / Architecture Highlight: Dealer Product Approval Workflow
+- Grouped-by-Dealer Moderation Interface:
+  * Rather than a flat, disconnected list, pending products are intelligently grouped by Dealer / Shop Name.
+  * Allows administrators to evaluate a vendor's catalog holistically.
+- Verification & Quality Review:
+  * Product name, category taxonomy, description, pricing sanity, and stock.
+  * High-resolution image preview thumbnail modal.
+- Moderation Actions:
+  * Single-Click Approval: Sets ApprovalStatus = 'Approved', PublishedAt = NOW(). Product immediately goes live on storefront.
+  * Rejection with Reason: Opens modal requiring administrative feedback (e.g., 'Pricing violates policy', 'Images low quality'). Sets ApprovalStatus = 'Rejected' and saves RejectionReason for dealer remediation.
+
+===============================================================================
+3. COMPREHENSIVE DEALER ADMINISTRATION (/admin/dealers)
+===============================================================================
+
+- Vendor Directory & Search:
+  * Full search by shop name, owner name, or email.
+  * Category filter dropdown (Electronics, Clothing, Books, etc.).
+- Approval & Verification Engine:
+  * Single-click instant approval toggle for pending dealer applications.
+- Extended Dealer Detail Modal (Size 3xl/4xl):
+  * Inspect complete shop information, address, logo, and owner credentials.
+  * Embedded Customer Roster: Calls 'GET /api/admin/dealers/{id}/customers' to display all buyers who purchased from this dealer.
+- Direct Dealer Creation & Edit Modal:
+  * Allows admin to manually onboard, edit, or remove vendor accounts.
+
+===============================================================================
+4. CUSTOMER ACCOUNT DIRECTORY (/admin/users)
+===============================================================================
+
+- Customer Accounts Overview:
+  * Full list of registered customer accounts with contact details and registration dates.
+- Account Moderation Controls:
+  * Toggle active status (Ban / Unban) with instantaneous API synchronization.
+  * Prevents blocked users from logging in or placing new orders.
+
+===============================================================================
+5. TAXONOMY & CATEGORY MANAGER (/admin/categories)
+===============================================================================
+
+- Category Hierarchy Tree:
+  * List, create, update, and delete product categories.
+  * Parent-child category relationship management.
+  * Referential integrity checks prevent deleting categories containing active products.
+
+===============================================================================
+6. PLATFORM ANALYTICS & REPORTS (/admin/stats)
+===============================================================================
+
+- Financial & catalog summary metrics.
+- Vendor contribution metrics and revenue velocity.
+
+===============================================================================
+7. ADMIN PROFILE & SECURITY (/admin/profile)
+===============================================================================
+
+- Administrator identity and avatar image upload.
+- Master credentials and password change controls.

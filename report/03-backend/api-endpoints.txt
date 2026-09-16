@@ -1,0 +1,358 @@
+API ENDPOINTS SPECIFICATION
+==========================
+
+Base URL: http://localhost:5001/api
+Swagger Documentation: http://localhost:5001/swagger
+Total Endpoints: 35+
+Authentication Scheme: JWT Bearer ("Authorization: Bearer <token>")
+
+===============================================================================
+1. AUTHENTICATION & IDENTITY ENDPOINTS (/api/auth)
+===============================================================================
+
+POST /api/auth/login
+- Description: Authenticate credentials against admins, dealers, or customers tables.
+- Access: Public
+- Request Body:
+  {
+    "email": "dealer1@test.com",
+    "password": "Dealer@123"
+  }
+- Response (200 OK):
+  {
+    "id": "c2000000-0000-0000-0000-000000000001",
+    "email": "dealer1@test.com",
+    "fullName": "Alex Tech",
+    "role": "Dealer",
+    "avatarUrl": "https://...",
+    "shopName": "AlexTechs Shop",
+    "token": "eyJhbGciOiJIUzI1Ni...",
+    "refreshToken": "..."
+  }
+
+POST /api/auth/register
+- Description: Create a new Customer or Dealer account.
+- Access: Public
+- Request Body (Customer):
+  {
+    "email": "newcustomer@test.com",
+    "password": "Password@123",
+    "fullName": "Jane Doe",
+    "phone": "+1234567890",
+    "role": "Customer"
+  }
+- Request Body (Dealer):
+  {
+    "email": "newdealer@test.com",
+    "password": "Password@123",
+    "fullName": "Tech World Ltd",
+    "phone": "+1234567890",
+    "role": "Dealer",
+    "shopName": "Tech World",
+    "shopDescription": "Modern electronics boutique",
+    "shopCategory": "Electronics",
+    "address": "789 High Street"
+  }
+- Response (200 OK): AuthResponse object with JWT token and assigned role claims.
+
+GET /api/auth/me
+- Description: Retrieve current authenticated identity profile and claims.
+- Access: Authorized (Admin, Dealer, Customer)
+- Response (200 OK):
+  {
+    "id": "...",
+    "email": "...",
+    "fullName": "...",
+    "phone": "...",
+    "role": "...",
+    "avatarUrl": "...",
+    "isActive": true,
+    "createdAt": "..."
+  }
+
+PUT /api/auth/me
+- Description: Update authenticated user profile attributes.
+- Access: Authorized (Admin, Dealer, Customer)
+- Request Body:
+  {
+    "fullName": "Jane Doe Updated",
+    "phone": "+1987654321",
+    "avatarUrl": "data:image/png;base64,...",
+    "shippingAddress": "456 New Road, City"
+  }
+- Response (200 OK): Updated User profile object.
+
+POST /api/auth/refresh
+- Description: Refresh expired JWT session.
+- Access: Public
+- Request: { "refreshToken": "string" }
+- Response: 200 OK with new JWT token or 401 Unauthorized.
+
+===============================================================================
+2. DEALER MANAGEMENT ENDPOINTS (/api/dealers)
+===============================================================================
+All endpoints require Header: "Authorization: Bearer <token>" with Role = "Dealer".
+
+GET /api/dealers/profile
+- Description: Retrieve dealer's full shop profile, category, logo, and avatar.
+- Response (200 OK): DealerProfileResponse with shop and owner fields.
+
+PUT /api/dealers/profile
+- Description: Update shop branding, address, phone, avatar, and description.
+- Request Body:
+  {
+    "fullName": "Alex Tech",
+    "phone": "+1000001001",
+    "avatarUrl": "data:image/png;base64,...",
+    "shopName": "AlexTechs Shop",
+    "shopDescription": "Leading electronics retailer with the latest gadgets",
+    "shopCategory": "Electronics",
+    "address": "456 Commerce Ave, Business District",
+    "logoUrl": "https://..."
+  }
+- Response (200 OK): Updated DealerProfileResponse.
+
+GET /api/dealers/products
+- Description: Retrieve paginated product catalog owned by the authenticated dealer.
+- Query Parameters:
+  - status: (optional) "Pending" | "Approved" | "Rejected"
+  - page: int (default 1)
+  - pageSize: int (default 10)
+- Response (200 OK): { "items": ProductDto[], "total": int, "page": int, "pageSize": int }
+
+GET /api/dealers/products/{id}
+- Description: Get single product details by ID (verifies dealer ownership).
+- Response: 200 OK with ProductDto, 403 Forbidden if belonging to another vendor, 404 NotFound.
+
+POST /api/dealers/products
+- Description: Create a new product. Automatically assigned to dealer with status = "Pending".
+- Request Body:
+  {
+    "name": "Noise Cancelling Headphones",
+    "description": "Premium wireless ANC headphones",
+    "price": 149.99,
+    "stockQuantity": 50,
+    "sku": "SKU-ALEX-ANC-01",
+    "categoryId": "a1000000-0000-0000-0000-000000000001",
+    "imageUrls": ["https://picsum.photos/seed/headphone/400/400"]
+  }
+- Response (201 Created): ProductDto.
+
+PUT /api/dealers/products/{id}
+- Description: Update product details, pricing, inventory, and images. Reverts status to "Pending" if moderated fields change.
+- Response (200 OK): ProductDto.
+
+DELETE /api/dealers/products/{id}
+- Description: Delete vendor product (ensures dealer ownership check).
+- Response (204 NoContent).
+
+GET /api/dealers/orders
+- Description: Get all orders that include items fulfilled by this dealer.
+- Query Parameters: page, pageSize
+- Response (200 OK): { "items": OrderDto[], "total": int, "page": int, "pageSize": int }
+
+PUT /api/dealers/orders/{id}/status
+- Description: Update lifecycle state of an order belonging to this dealer.
+- Request Body:
+  {
+    "status": "Processing" // "Pending" | "Confirmed" | "Processing" | "Shipped" | "Delivered" | "Cancelled"
+  }
+- Response (200 OK): OrderDto.
+
+GET /api/dealers/sales
+- Description: Retrieve aggregate sales revenue analytics and product breakdown metrics.
+- Response (200 OK):
+  {
+    "totalRevenue": 2450.50,
+    "totalOrders": 5,
+    "totalUnitsSold": 18,
+    "topProducts": [
+      { "productId": "...", "productName": "...", "unitsSold": 8, "revenue": 1199.92 }
+    ],
+    "salesByStatus": { "Delivered": 1500.00, "Processing": 950.50 }
+  }
+
+GET /api/dealers/customers
+- Description: Retrieve distinct list of customers who have purchased this dealer's items.
+- Response (200 OK):
+  {
+    "items": [
+      {
+        "id": "c3000000-0000-0000-0000-000000000001",
+        "fullName": "John Buyer",
+        "email": "customer1@test.com",
+        "phone": "+1000002001",
+        "totalOrders": 6,
+        "totalSpent": 1250.00,
+        "avatarUrl": "https://..."
+      }
+    ],
+    "total": 1
+  }
+
+===============================================================================
+3. ADMIN CONTROL & MODERATION ENDPOINTS (/api/admin)
+===============================================================================
+All endpoints require Header: "Authorization: Bearer <token>" with Role = "Admin".
+
+GET /api/admin/stats
+- Description: Global platform KPI counters.
+- Response (200 OK):
+  {
+    "totalUsers": 3,
+    "totalDealers": 1,
+    "totalCustomers": 1,
+    "totalProducts": 550,
+    "pendingProducts": 110,
+    "totalOrders": 6,
+    "totalRevenue": 3480.00
+  }
+
+GET /api/admin/products/pending
+- Description: List products awaiting admin moderation with dealer details.
+- Query: page, pageSize
+- Response (200 OK): { "items": ProductDto[], "total": int, "page": int, "pageSize": int }
+
+PUT /api/admin/products/{id}/approve
+- Description: Approve pending product. Sets ApprovalStatus = "Approved", PublishedAt = NOW().
+- Response (200 OK): ProductDto.
+
+PUT /api/admin/products/{id}/reject
+- Description: Reject product submission with feedback.
+- Request Body: { "rejectionReason": "Pricing violates catalog guidelines." }
+- Response (200 OK): ProductDto.
+
+DELETE /api/admin/products/{id}
+- Description: Administratively remove any product.
+- Response (204 NoContent).
+
+GET /api/admin/dealers
+- Description: Paginated list of all dealers with approval and status flags.
+- Query: search, category, page, pageSize
+- Response (200 OK): { "items": DealerDto[], "total": int, "page": int, "pageSize": int }
+
+GET /api/admin/dealers/{id}
+- Description: Get full dealer dossier by ID.
+- Response (200 OK): DealerDto.
+
+GET /api/admin/dealers/{id}/customers
+- Description: Get customers associated with a specific dealer's transaction history.
+- Response (200 OK): { "items": CustomerDto[], "total": int }
+
+POST /api/admin/dealers
+- Description: Create and directly approve a new dealer account.
+- Request Body: AdminDealerRequest
+- Response (200 OK): DealerDto.
+
+PUT /api/admin/dealers/{id}
+- Description: Update any dealer's credentials, shop details, or approval state.
+- Request Body: AdminDealerRequest
+- Response (200 OK): DealerDto.
+
+DELETE /api/admin/dealers/{id}
+- Description: Delete dealer account and associated entities.
+- Response (204 NoContent).
+
+PUT /api/admin/dealers/{id}/approve
+- Description: Approve a registered dealer application. Sets IsApproved = true.
+- Response (200 OK): { "message": "Dealer approved" }.
+
+GET /api/admin/users
+- Description: List all customer accounts.
+- Query: role, isActive, search, page, pageSize
+- Response (200 OK): { "items": CustomerDto[], "total": int, "page": int, "pageSize": int }
+
+PUT /api/admin/users/{id}/status
+- Description: Toggle customer account activity (ban/unban).
+- Request Body: { "isActive": false }
+- Response (200 OK): CustomerDto.
+
+GET /api/admin/categories
+- Description: List categories for administrative management.
+- Response (200 OK): { "items": CategoryDto[], "total": int }
+
+POST /api/admin/categories
+- Description: Create product category.
+- Request: { "name": "...", "description": "...", "parentCategoryId": null }
+- Response (200 OK): CategoryDto.
+
+PUT /api/admin/categories/{id}
+- Description: Edit category properties.
+- Response (200 OK): CategoryDto.
+
+DELETE /api/admin/categories/{id}
+- Description: Remove category.
+- Response (204 NoContent).
+
+POST /api/admin/clear-demo-data
+- Description: Clear demo cache/state notifier.
+- Response (200 OK).
+
+===============================================================================
+4. CUSTOMER SHOPPING & ORDERS (/api/cart, /api/orders)
+===============================================================================
+Requires Role = "Customer".
+
+GET /api/cart
+- Description: Get authenticated customer's cart with items, calculated totals, and product photos.
+- Response (200 OK): CartDto.
+
+POST /api/cart/items
+- Description: Add item to shopping cart or increment quantity if already present.
+- Request Body: { "productId": "...", "quantity": 2 }
+- Response (200 OK): CartItemDto.
+
+PUT /api/cart/items/{id}
+- Description: Update quantity of a line item.
+- Request Body: { "quantity": 3 }
+- Response (200 OK): CartItemDto.
+
+DELETE /api/cart/items/{id}
+- Description: Remove item from cart.
+- Response (204 NoContent).
+
+POST /api/orders
+- Description: Convert active cart items into placed order. Automatically deducts stock and empties cart.
+- Request Body: { "shippingAddress": "123 Main St, Apt 4B" }
+- Response (201 Created): OrderDto with order ID and confirmation status.
+
+GET /api/orders
+- Description: Get customer's order history.
+- Response (200 OK): { "items": OrderDto[], "total": int }
+
+GET /api/orders/{id}
+- Description: Get single order details with item breakdown.
+- Access: Customer (owner), Dealer (if item included), or Admin.
+- Response (200 OK): OrderDto.
+
+PUT /api/orders/{id}/status
+- Description: Update order status.
+- Access: Admin or Dealer (verifies dealer has line items in this order).
+- Request Body: { "status": "Shipped" }
+- Response (200 OK): OrderDto.
+
+===============================================================================
+5. PUBLIC STOREFRONT ENDPOINTS (/api/products, /api/categories)
+===============================================================================
+Access: Public (No auth required)
+
+GET /api/products
+- Description: Browse approved catalog products with filtering, search, and pagination.
+- Query Parameters:
+  - categoryId: UUID (optional)
+  - search: string (optional)
+  - minPrice: decimal (optional)
+  - maxPrice: decimal (optional)
+  - sortBy: string ("price_asc" | "price_desc" | "newest")
+  - page: int (default 1)
+  - pageSize: int (default 12)
+- Note: Filter strictly enforces ApprovalStatus = 'Approved'.
+- Response (200 OK): { "items": ProductDto[], "total": int, "page": int, "pageSize": int }
+
+GET /api/products/{id}
+- Description: Public product detail page data, including high-res gallery and vendor shop info.
+- Response (200 OK): ProductDto.
+
+GET /api/categories
+- Description: Public product category navigation taxonomy.
+- Response (200 OK): CategoryDto[].

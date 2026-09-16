@@ -1,0 +1,32 @@
+PROJECT OBJECTIVES
+==================
+
+Primary Objectives:
+1. Build a complete, functional multi-vendor e-commerce platform
+2. Demonstrate C# and .NET concepts (OOP, EF Core, JWT auth, DI, middleware)
+3. Implement role-based authorization with 3 roles (Admin, Dealer, Customer)
+4. Provide realistic demo data for testing all features
+5. Deliver clean, documented, production-quality code
+
+Technical Objectives:
+1. Implement Clean Architecture with proper layer separation
+2. Use Entity Framework Core for database operations
+3. Implement JWT-based authentication with BCrypt password hashing
+4. Create a responsive, modern UI with Tailwind CSS
+5. Build a RESTful API following industry best practices
+6. Implement the Dealer Product Approval Workflow (core feature)
+
+Feature Objectives:
+1. Admin Dashboard with statistics and management capabilities
+2. Dealer Portal for product and order management
+3. Customer Shopping Experience with cart and checkout
+4. Product approval workflow (Pending → Approved/Rejected)
+5. Shopping cart with quantity management
+6. Order placement and history tracking
+
+Quality Objectives:
+1. Clean, maintainable code following SOLID principles
+2. Comprehensive documentation (10 document files)
+3. Realistic seed data (550+ products, 10 dealers, 10 customers)
+4. Error handling and input validation
+5. Responsive design for all screen sizes

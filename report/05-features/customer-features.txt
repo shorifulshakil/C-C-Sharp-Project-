@@ -1,0 +1,89 @@
+CUSTOMER STOREFRONT & SHOPPING FEATURES
+========================================
+
+Role: Customer
+Primary Demo Account: customer1@test.com / Customer@123 (John Buyer)
+Storefront Routes: /, /products, /products/[id], /cart, /checkout, /orders, /account
+
+===============================================================================
+1. STOREFRONT HOMEPAGE (/)
+===============================================================================
+
+- Hero section with dual action CTA and dynamic gradient background.
+- Live platform statistics (500+ products, 8 categories, 100% verified vendors).
+- Interactive category selector with category visual cards.
+- Featured products carousel and promotional banners.
+- Customer trust elements (Secure transactions, Fast delivery, Buyer protection).
+
+===============================================================================
+2. PRODUCT DISCOVERY & FILTERING (/products)
+===============================================================================
+
+- Dynamic Faceted Sidebar:
+  * Keyword search with real-time debounced query execution.
+  * Category checklist selection.
+  * Price range slider / min-max inputs.
+  * Sorting algorithms: Price: Low to High, Price: High to Low, Newest arrivals.
+- Responsive 3-column product grid with image zoom hover effects and stock status badges.
+- Smooth skeleton loaders (ProductCardSkeleton) during network latency.
+- Pagination controls with items-per-page selector.
+
+===============================================================================
+3. PRODUCT SHOWCASE (/products/[id])
+===============================================================================
+
+- Breadcrumb navigation: Home > Category > Product Name.
+- High-definition image gallery with thumbnail carousel.
+- Vendor attribution badge linking to the verified seller's shop info.
+- Stock availability indicator (In Stock vs Out of Stock warnings).
+- Interactive quantity counter (+ / -) with boundary validation against stock.
+- Single-click 'Add to Cart' with instant toast notification.
+
+===============================================================================
+4. SHOPPING CART MANAGEMENT (/cart)
+===============================================================================
+
+- Real-time cart state synchronization with backend API.
+- Itemized card rows showing product thumbnail, unit price, quantity controls, and subtotal.
+- Single-click line item deletion.
+- Summary Calculation Card:
+  * Subtotal calculation.
+  * Tax estimate and free shipping threshold.
+  * Estimated total.
+- Direct CTA to secure checkout.
+
+===============================================================================
+5. ATOMIC CHECKOUT & ORDER PLACEMENT (/checkout)
+===============================================================================
+
+- Delivery Address capture with pre-filled default from profile.
+- Order review accordion showing line items and seller attribution.
+- Atomic checkout processing:
+  * Validates stock availability for each item.
+  * Decrements product inventory in database.
+  * Creates Order and OrderItem records attributed to respective vendors.
+  * Empties customer cart upon successful submission.
+  * Redirects to Order Confirmation page with order ID.
+
+===============================================================================
+6. ORDER TRACKING & LIFECYCLE HISTORY (/orders)
+===============================================================================
+
+- Comprehensive order cards showing:
+  * Order ID, timestamp, and delivery destination.
+  * Color-coded status badge for all 6 lifecycle stages:
+    - Pending (Order submitted)
+    - Confirmed (Order accepted)
+    - Processing (Inventory prepared)
+    - Shipped (In-transit)
+    - Delivered (Completed)
+    - Cancelled (Voided)
+  * Breakdown of ordered items, vendor names, quantities, and price at purchase.
+
+===============================================================================
+7. CUSTOMER ACCOUNT & PROFILE (/account)
+===============================================================================
+
+- Personal details editor (Full Name, Phone, Shipping Address).
+- Avatar image upload (via ImageUploadInput) or external profile image URL.
+- Security tab for password modification with current password verification.

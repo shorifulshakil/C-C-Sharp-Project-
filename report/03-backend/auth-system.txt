@@ -1,0 +1,67 @@
+AUTHENTICATION & SECURITY SYSTEM SPECIFICATION
+================================================
+
+Framework: ASP.NET Core JWT Bearer Authentication (.NET 9.0)
+Password Hashing: BCrypt.Net-Next (Cost Factor 11)
+Identity Paradigm: Multi-Table Role Segregation (Admins, Dealers, Customers)
+
+===============================================================================
+1. JWT CONFIGURATION & CLAIMS
+===============================================================================
+
+Issuer: ECommerceAPI
+Audience: ECommerceApp
+Token Secret: SUPER_SECRET_KEY_MUST_BE_LONG_ENOUGH_1234567890
+Signature Algorithm: HMAC-SHA256
+Access Token Expiry: 60 minutes (sliding session)
+
+Claims Injected into Token:
+- ClaimTypes.NameIdentifier: Guid (Unique user ID)
+- ClaimTypes.Email: String (User email)
+- ClaimTypes.Name: String (Full display name)
+- ClaimTypes.Role: String ("Admin" | "Dealer" | "Customer")
+
+===============================================================================
+2. MULTI-TABLE AUTHENTICATION RESOLUTION
+===============================================================================
+
+Because user identities are divided into dedicated database tables:
+1. When a login request (POST /api/auth/login) arrives:
+   - Step 1: AuthService checks 'admins' table by email. If found, verifies BCrypt hash and issues JWT with Role = "Admin".
+   - Step 2: If not an admin, checks 'dealers' table. If found, verifies BCrypt hash, checks IsActive and IsApproved, and issues JWT with Role = "Dealer", injecting shopName and avatarUrl.
+   - Step 3: If not a dealer, checks 'customers' table. If found, verifies BCrypt hash, checks IsActive, and issues JWT with Role = "Customer".
+   - Step 4: If not found in any table or if hash comparison fails, returns 401 Unauthorized ("Invalid credentials").
+
+2. Dual Registration Logic (POST /api/auth/register):
+   - Customer Registration:
+     - Requires: email, password, fullName, phone.
+     - Validates email uniqueness across all tables.
+     - Hashes password via BCrypt.
+     - Initializes Customer entity with empty Cart.
+     - Returns active JWT token immediately.
+   - Dealer Registration:
+     - Requires: email, password, fullName, phone, shopName, shopDescription, shopCategory, address.
+     - Validates email uniqueness across all tables.
+     - Hashes password via BCrypt.
+     - Creates Dealer entity with IsApproved = false (pending Admin moderation).
+     - Provides clear feedback that the shop requires admin approval before listings go live.
+
+===============================================================================
+3. CLIENT-SIDE AUTH LIFECYCLE (Next.js 14)
+===============================================================================
+
+1. State Management:
+   - Managed via React Context in 'frontend/context/AuthContext.tsx'.
+   - Persists JWT token and user profile in browser localStorage.
+   - Auto-initializes on page load by calling 'GET /api/auth/me'.
+
+2. Protected Route Middleware:
+   - Next.js Client-Side Route Guards intercept unauthorized navigation:
+     - '/admin/*' requires role == 'Admin'.
+     - '/dealer/*' requires role == 'Dealer'.
+     - '/checkout', '/account', '/orders' require role == 'Customer'.
+   - Redirects unauthenticated visitors to '/auth/login?redirect={path}'.
+
+3. Axios / Fetch Interceptor:
+   - Automatically attaches 'Authorization: Bearer <token>' on all outgoing API requests.
+   - Intercepts 401 responses, triggers session cleanup, and redirects to login.

@@ -1,0 +1,127 @@
+BACKEND SERVICE LAYER SPECIFICATION
+====================================
+
+The Application Layer (ECommerce.Application) coordinates business rules, orchestrates transactions via Unit of Work, and abstracts data access from the API presentation layer.
+
+Location: backend/src/ECommerce.Application/Services/
+Design Pattern: Dependency Injection, Interface-Driven Services, DTO Projection
+
+===============================================================================
+1. CORE SERVICES OVERVIEW
+===============================================================================
+
+| Service Name       | Implementation File   | Core Responsibilities                                     |
+|--------------------|-----------------------|-----------------------------------------------------------|
+| AuthService        | AuthService.cs        | Multi-table login, registration, JWT issuance, profile    |
+| DealerService      | DealerService.cs      | Vendor profile management, shop details, avatar updates    |
+| OrderService       | OrderService.cs       | Order placement, state machine transitions, sales metrics |
+| ProductService     | ProductService.cs     | Product CRUD, multi-image linking, admin moderation flow  |
+| AdminService       | AdminService.cs       | Platform KPIs, dealer approval, user bans, dealer clients |
+| CartService        | CartService.cs        | Shopping cart management, quantity sync, price locks      |
+| CategoryService    | CategoryService.cs    | Product category taxonomy hierarchy                       |
+
+===============================================================================
+2. DETAILED SERVICE ARCHITECTURE & METHODS
+===============================================================================
+
+-------------------------------------------------------------------------------
+A. AuthService (AuthService.cs)
+-------------------------------------------------------------------------------
+Dependencies: IUnitOfWork, IJwtTokenGenerator, IPasswordHasher
+Key Methods:
+- LoginAsync(LoginRequest): Checks 'admins', then 'dealers', then 'customers' tables.
+  Verifies BCrypt password hash. Returns AuthResponse containing user details, role, and signed JWT.
+- RegisterAsync(RegisterRequest): Dispatches customer creation or dealer creation.
+  When registering as Dealer: sets IsApproved = false (pending Admin review), assigns shop fields.
+- GetMeAsync(Guid userId): Resolves authenticated identity from JWT sub claim across the 3 tables.
+- UpdateProfileAsync(Guid userId, UpdateProfileRequest): Allows updating FullName, Phone,
+  AvatarUrl (Base64/URL), and ShippingAddress. Supports password modification with old password verification.
+
+-------------------------------------------------------------------------------
+B. DealerService (DealerService.cs)
+-------------------------------------------------------------------------------
+Dependencies: IUnitOfWork
+Key Methods:
+- GetProfileAsync(Guid userId): Retrieves dealer identity along with ShopName, ShopDescription,
+  ShopCategory, Address, LogoUrl, AvatarUrl, and IsApproved flag.
+- UpdateProfileAsync(Guid userId, DealerProfileRequest request): Updates shop branding, physical
+  address, category, owner full name, phone number, and avatar image.
+
+-------------------------------------------------------------------------------
+C. OrderService (OrderService.cs)
+-------------------------------------------------------------------------------
+Dependencies: IUnitOfWork
+Key Methods:
+- CreateAsync(Guid customerId, OrderRequest request):
+  1. Validates active cart and item availability.
+  2. Ensures sufficient inventory in stock.
+  3. Atomically creates Order record and OrderItems with DealerId attribution.
+  4. Decrements Product.StockQuantity.
+  5. Flushes and clears customer's cart items in a single transaction.
+- GetCustomerOrdersAsync(Guid customerId): Returns all orders for a specific buyer.
+- GetDealerOrdersAsync(Guid dealerId): Filters orders containing line items fulfilled by this dealer.
+- GetDealerSalesAsync(Guid dealerId):
+  Aggregates total revenue, total units sold, and groups sales per product with buyer histories
+  (customer name, email, order date, and subtotal breakdown).
+- UpdateStatusAsync(Guid orderId, string newStatus, Guid? dealerId):
+  Implements a strict finite-state machine (FSM):
+  * Pending    ──► Confirmed | Cancelled
+  * Confirmed  ──► Processing | Cancelled
+  * Processing ──► Shipped | Cancelled
+  * Shipped    ──► Delivered
+  * Delivered  ──► [Terminal]
+  * Cancelled  ──► [Terminal]
+  If invoked by a dealer, verifies that order contains at least one line item owned by the dealer.
+
+-------------------------------------------------------------------------------
+D. ProductService (ProductService.cs)
+-------------------------------------------------------------------------------
+Dependencies: IUnitOfWork
+Key Methods:
+- GetPublicProductsAsync(ProductFilter filter):
+  Applies server-side filtering: Category, Search query, Min/Max Price, Sorting ("price_asc", "price_desc", "newest").
+  Enforces ApprovalStatus == Approved.
+- GetPublicProductAsync(Guid id): Fetches product detail with associated ProductImages and Dealer shop info.
+- GetDealerProductsAsync(Guid dealerId, string? status, int page, int pageSize):
+  Fetches dealer's product listings with optional status filtering.
+- CreateAsync(Guid dealerId, ProductRequest request):
+  Creates product with ApprovalStatus = Pending. Automatically creates associated ProductImages.
+- UpdateAsync(Guid dealerId, Guid productId, ProductRequest request):
+  Verifies dealer ownership. Updates details and images. Reverts status to Pending for review.
+- DeleteAsync(Guid dealerId, Guid productId):
+  Verifies ownership (or admin bypass) and removes product.
+- GetPendingProductsAsync(int page, int pageSize):
+  Retrieves unapproved products for Admin moderation queue with dealer details.
+- ApproveAsync(Guid productId): Sets ApprovalStatus = Approved and PublishedAt = DateTime.UtcNow.
+- RejectAsync(Guid productId, string reason): Sets ApprovalStatus = Rejected and records RejectionReason.
+
+-------------------------------------------------------------------------------
+E. AdminService (AdminService.cs)
+-------------------------------------------------------------------------------
+Dependencies: IUnitOfWork
+Key Methods:
+- GetStatsAsync(): Computes aggregate metrics (Total Users, Total Dealers, Total Customers,
+  Total Products, Pending Moderation Queue count, Total Orders, Total Platform Revenue).
+- GetAllDealersAsync(string? search, string? category, int page, int pageSize):
+  Retrieves paginated dealer listings with shop information and approval status.
+- GetDealerByIdAsync(Guid id): Gets full dealer record.
+- GetDealerCustomersAsync(Guid dealerId): Queries order items for this dealer and returns distinct
+  customer accounts who purchased from them.
+- CreateDealerAsync(AdminDealerRequest request): Directly creates a pre-approved dealer.
+- UpdateDealerAsync(Guid id, AdminDealerRequest request): Modifies dealer credentials and shop data.
+- DeleteDealerAsync(Guid id): Deletes dealer account.
+- ApproveDealerAsync(Guid id): Marks IsApproved = true.
+- GetAllUsersAsync(string? role, bool? isActive, string? search, int page, int pageSize):
+  Lists customer accounts with search and filtering.
+- UpdateUserStatusAsync(Guid id, UserStatusUpdate request): Toggles customer IsActive flag.
+
+-------------------------------------------------------------------------------
+F. CartService (CartService.cs)
+-------------------------------------------------------------------------------
+Dependencies: IUnitOfWork
+Key Methods:
+- GetCartAsync(Guid customerId): Returns customer's active cart with populated items,
+  current product stock, price locks, and thumbnail images.
+- AddItemAsync(Guid customerId, CartItemRequest request): Adds item or increments existing line item quantity.
+- UpdateItemAsync(Guid customerId, Guid itemId, int quantity): Updates line item quantity.
+- DeleteItemAsync(Guid customerId, Guid itemId): Removes item from shopping cart.

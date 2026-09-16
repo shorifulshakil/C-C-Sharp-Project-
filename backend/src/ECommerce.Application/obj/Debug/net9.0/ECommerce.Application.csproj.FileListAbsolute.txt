@@ -1,0 +1,16 @@
+/Users/md.prantoislam/Desktop/C-Project/backend/src/ECommerce.Application/bin/Debug/net9.0/ECommerce.Application.deps.json
+/Users/md.prantoislam/Desktop/C-Project/backend/src/ECommerce.Application/bin/Debug/net9.0/ECommerce.Application.dll
+/Users/md.prantoislam/Desktop/C-Project/backend/src/ECommerce.Application/bin/Debug/net9.0/ECommerce.Application.pdb
+/Users/md.prantoislam/Desktop/C-Project/backend/src/ECommerce.Application/bin/Debug/net9.0/ECommerce.Domain.dll
+/Users/md.prantoislam/Desktop/C-Project/backend/src/ECommerce.Application/bin/Debug/net9.0/ECommerce.Domain.pdb
+/Users/md.prantoislam/Desktop/C-Project/backend/src/ECommerce.Application/obj/Debug/net9.0/ECommerce.Application.csproj.AssemblyReference.cache
+/Users/md.prantoislam/Desktop/C-Project/backend/src/ECommerce.Application/obj/Debug/net9.0/ECommerce.Application.GeneratedMSBuildEditorConfig.editorconfig
+/Users/md.prantoislam/Desktop/C-Project/backend/src/ECommerce.Application/obj/Debug/net9.0/ECommerce.Application.AssemblyInfoInputs.cache
+/Users/md.prantoislam/Desktop/C-Project/backend/src/ECommerce.Application/obj/Debug/net9.0/ECommerce.Application.AssemblyInfo.cs
+/Users/md.prantoislam/Desktop/C-Project/backend/src/ECommerce.Application/obj/Debug/net9.0/ECommerce.Application.csproj.CoreCompileInputs.cache
+/Users/md.prantoislam/Desktop/C-Project/backend/src/ECommerce.Application/obj/Debug/net9.0/ECommerce.Application.sourcelink.json
+/Users/md.prantoislam/Desktop/C-Project/backend/src/ECommerce.Application/obj/Debug/net9.0/ECommerc.670E0CBE.Up2Date
+/Users/md.prantoislam/Desktop/C-Project/backend/src/ECommerce.Application/obj/Debug/net9.0/ECommerce.Application.dll
+/Users/md.prantoislam/Desktop/C-Project/backend/src/ECommerce.Application/obj/Debug/net9.0/refint/ECommerce.Application.dll
+/Users/md.prantoislam/Desktop/C-Project/backend/src/ECommerce.Application/obj/Debug/net9.0/ECommerce.Application.pdb
+/Users/md.prantoislam/Desktop/C-Project/backend/src/ECommerce.Application/obj/Debug/net9.0/ref/ECommerce.Application.dll

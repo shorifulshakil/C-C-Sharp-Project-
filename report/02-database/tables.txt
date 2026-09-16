@@ -1,0 +1,269 @@
+DATABASE SCHEMA & TABLE DEFINITIONS
+====================================
+
+The database is hosted on Supabase (PostgreSQL 14+ cloud engine).
+The single source of truth for the complete schema and seed data is defined in: SQL/master.sql
+
+Schema Version: 3.0 (Role-Dedicated Auth Tables + Avatars + Complete Order Lifecycle)
+Database Engine: PostgreSQL 14+
+Cloud Provider: Supabase (AWS ap-south-1)
+Total Tables: 10
+Primary Seed Records: 1 Admin, 1 Dealer, 1 Customer, 8 Categories, 550 Products, 550 Product Images, 6 Orders, Multi-Item Order Details.
+
+===============================================================================
+TABLE DEFINITIONS & SPECIFICATIONS
+===============================================================================
+
+1. ADMINS
+---------
+Purpose: Platform administrator accounts with full system management privileges.
+
+Columns:
+- Id              UUID            PRIMARY KEY (Default: gen_random_uuid())
+- Email           VARCHAR(256)    NOT NULL, UNIQUE
+- PasswordHash    TEXT            NOT NULL (BCrypt hashed, work factor 11)
+- FullName        VARCHAR(256)    NOT NULL
+- Phone           VARCHAR(32)     NULLABLE
+- AvatarUrl       TEXT            NULLABLE (Profile image URL or Base64 avatar)
+- IsActive        BOOLEAN         NOT NULL, DEFAULT TRUE
+- CreatedAt       TIMESTAMPTZ     NOT NULL, DEFAULT NOW()
+- UpdatedAt       TIMESTAMPTZ     NOT NULL, DEFAULT NOW()
+
+Indexes:
+- ix_admins_email (UNIQUE on "Email")
+
+Seed Data:
+- 1 Record: admin@ecommerce.com / Admin@123 (Id: b1000000-0000-0000-0000-000000000001)
+
+-------------------------------------------------------------------------------
+
+2. DEALERS
+----------
+Purpose: Multi-vendor dealer accounts combining owner authentication and shop entity details.
+
+Columns:
+- Id                UUID            PRIMARY KEY
+- Email             VARCHAR(256)    NOT NULL, UNIQUE
+- PasswordHash      TEXT            NOT NULL (BCrypt hashed)
+- FullName          VARCHAR(256)    NOT NULL
+- Phone             VARCHAR(32)     NULLABLE
+- AvatarUrl         TEXT            NULLABLE (Personal/owner avatar)
+- ShopName          VARCHAR(256)    NOT NULL
+- ShopDescription   TEXT            NULLABLE
+- ShopCategory      VARCHAR(128)    NOT NULL
+- Address           TEXT            NOT NULL
+- LogoUrl           TEXT            NULLABLE (Shop branding logo)
+- IsApproved        BOOLEAN         NOT NULL, DEFAULT FALSE (Admin approval flag)
+- IsActive          BOOLEAN         NOT NULL, DEFAULT TRUE
+- CreatedAt         TIMESTAMPTZ     NOT NULL, DEFAULT NOW()
+- UpdatedAt         TIMESTAMPTZ     NOT NULL, DEFAULT NOW()
+
+Indexes:
+- ix_dealers_email (UNIQUE on "Email")
+
+Seed Data:
+- 1 Record: dealer1@test.com / Dealer@123 (Alex Tech, AlexTechs Shop, IsApproved = true)
+  (Id: c2000000-0000-0000-0000-000000000001)
+
+-------------------------------------------------------------------------------
+
+3. CUSTOMERS
+------------
+Purpose: End-user buyer accounts with shopping profile and shipping address.
+
+Columns:
+- Id                UUID            PRIMARY KEY
+- Email             VARCHAR(256)    NOT NULL, UNIQUE
+- PasswordHash      TEXT            NOT NULL (BCrypt hashed)
+- FullName          VARCHAR(256)    NOT NULL
+- Phone             VARCHAR(32)     NULLABLE
+- AvatarUrl         TEXT            NULLABLE (Customer profile picture)
+- ShippingAddress   TEXT            NULLABLE (Default delivery destination)
+- IsActive          BOOLEAN         NOT NULL, DEFAULT TRUE
+- CreatedAt         TIMESTAMPTZ     NOT NULL, DEFAULT NOW()
+- UpdatedAt         TIMESTAMPTZ     NOT NULL, DEFAULT NOW()
+
+Indexes:
+- ix_customers_email (UNIQUE on "Email")
+
+Seed Data:
+- 1 Record: customer1@test.com / Customer@123 (John Buyer)
+  (Id: c3000000-0000-0000-0000-000000000001)
+
+-------------------------------------------------------------------------------
+
+4. CATEGORIES
+-------------
+Purpose: Hierarchical product classification categories.
+
+Columns:
+- Id                UUID            PRIMARY KEY
+- Name              VARCHAR(128)    NOT NULL, UNIQUE
+- Description       TEXT            NULLABLE
+- ParentCategoryId  UUID            NULLABLE, FOREIGN KEY REFERENCES categories("Id")
+- CreatedAt         TIMESTAMPTZ     NOT NULL, DEFAULT NOW()
+- UpdatedAt         TIMESTAMPTZ     NOT NULL, DEFAULT NOW()
+
+Indexes & Constraints:
+- ix_categories_name (UNIQUE on "Name")
+- fk_categories_parent (FOREIGN KEY to categories("Id"))
+
+Seed Data:
+- 8 Categories: Electronics, Clothing, Home & Garden, Books, Sports, Toys, Automotive, Health.
+
+-------------------------------------------------------------------------------
+
+5. PRODUCTS
+-----------
+Purpose: Multi-vendor catalog items created by dealers and moderated by admins.
+
+Columns:
+- Id                UUID            PRIMARY KEY
+- Name              VARCHAR(256)    NOT NULL
+- Description       TEXT            NULLABLE
+- Price             DECIMAL(10,2)   NOT NULL, CHECK ("Price" >= 0)
+- StockQuantity     INTEGER         NOT NULL DEFAULT 0, CHECK ("StockQuantity" >= 0)
+- Sku               VARCHAR(128)    NULLABLE, UNIQUE
+- ApprovalStatus    VARCHAR(32)     NOT NULL DEFAULT 'Pending'
+                                    ('Pending', 'Approved', 'Rejected')
+- RejectionReason   TEXT            NULLABLE
+- PublishedAt       TIMESTAMPTZ     NULLABLE (Timestamp set upon approval)
+- DealerId          UUID            NOT NULL, FOREIGN KEY REFERENCES dealers("Id")
+- CategoryId        UUID            NOT NULL, FOREIGN KEY REFERENCES categories("Id")
+- CreatedAt         TIMESTAMPTZ     NOT NULL, DEFAULT NOW()
+- UpdatedAt         TIMESTAMPTZ     NOT NULL, DEFAULT NOW()
+
+Indexes & Constraints:
+- ix_products_approval_category (Composite on ("ApprovalStatus", "CategoryId"))
+- ix_products_dealer (Index on "DealerId")
+- ix_products_sku (UNIQUE on "Sku")
+- fk_products_dealer (FOREIGN KEY to dealers("Id"))
+- fk_products_category (FOREIGN KEY to categories("Id"))
+- chk_products_price (Price >= 0)
+- chk_products_stock (StockQuantity >= 0)
+
+Seed Data:
+- 550 Products assigned to Dealer 1 (Alex Tech):
+  - 500 catalog items with varied approval statuses and pricing ($5.00 - $500.00).
+  - 50 extra featured products across all 8 categories.
+
+-------------------------------------------------------------------------------
+
+6. PRODUCT_IMAGES
+------------------
+Purpose: High-resolution product showcase images with display ordering.
+
+Columns:
+- Id            UUID            PRIMARY KEY
+- ImageUrl      TEXT            NOT NULL (External URL or Base64 data string)
+- DisplayOrder  INTEGER         NOT NULL DEFAULT 0
+- ProductId     UUID            NOT NULL, FOREIGN KEY REFERENCES products("Id") ON DELETE CASCADE
+- CreatedAt     TIMESTAMPTZ     NOT NULL, DEFAULT NOW()
+- UpdatedAt     TIMESTAMPTZ     NOT NULL, DEFAULT NOW()
+
+Indexes & Constraints:
+- ix_product_images_product (Index on "ProductId")
+- fk_product_images_product (FOREIGN KEY to products("Id") ON DELETE CASCADE)
+
+Seed Data:
+- 550 Product image records linking to Picsum CDN seed URLs.
+
+-------------------------------------------------------------------------------
+
+7. CARTS
+--------
+Purpose: Active shopping cart container for each customer (1:1 relation).
+
+Columns:
+- Id            UUID            PRIMARY KEY
+- CustomerId    UUID            NOT NULL, UNIQUE, FOREIGN KEY REFERENCES customers("Id") ON DELETE CASCADE
+- CreatedAt     TIMESTAMPTZ     NOT NULL, DEFAULT NOW()
+- UpdatedAt     TIMESTAMPTZ     NOT NULL, DEFAULT NOW()
+
+Indexes & Constraints:
+- ix_carts_customerid (UNIQUE on "CustomerId")
+- fk_carts_customer (FOREIGN KEY to customers("Id") ON DELETE CASCADE)
+
+Seed Data:
+- 1 Active Cart assigned to customer1@test.com.
+
+-------------------------------------------------------------------------------
+
+8. CART_ITEMS
+-------------
+Purpose: Line items currently retained in a customer's shopping cart.
+
+Columns:
+- Id            UUID            PRIMARY KEY
+- CartId        UUID            NOT NULL, FOREIGN KEY REFERENCES carts("Id") ON DELETE CASCADE
+- ProductId     UUID            NOT NULL, FOREIGN KEY REFERENCES products("Id") ON DELETE CASCADE
+- Quantity      INTEGER         NOT NULL DEFAULT 1, CHECK ("Quantity" > 0)
+- PriceAtAdd    DECIMAL(10,2)   NOT NULL, CHECK ("PriceAtAdd" >= 0)
+- CreatedAt     TIMESTAMPTZ     NOT NULL, DEFAULT NOW()
+- UpdatedAt     TIMESTAMPTZ     NOT NULL, DEFAULT NOW()
+
+Indexes & Constraints:
+- ix_cart_items_cart_product (UNIQUE on ("CartId", "ProductId"))
+- fk_cart_items_cart (FOREIGN KEY to carts("Id") ON DELETE CASCADE)
+- fk_cart_items_product (FOREIGN KEY to products("Id") ON DELETE CASCADE)
+- chk_cart_items_quantity (Quantity > 0)
+- chk_cart_items_price (PriceAtAdd >= 0)
+
+-------------------------------------------------------------------------------
+
+9. ORDERS
+---------
+Purpose: Customer purchase orders capturing billing, shipping, and delivery state.
+
+Columns:
+- Id                UUID            PRIMARY KEY
+- CustomerId        UUID            NOT NULL, FOREIGN KEY REFERENCES customers("Id")
+- Status            VARCHAR(32)     NOT NULL DEFAULT 'Pending'
+                                    ('Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled')
+- TotalAmount       DECIMAL(12,2)   NOT NULL, CHECK ("TotalAmount" >= 0)
+- ShippingAddress   TEXT            NOT NULL
+- CreatedAt         TIMESTAMPTZ     NOT NULL DEFAULT NOW()
+- UpdatedAt         TIMESTAMPTZ     NOT NULL DEFAULT NOW()
+
+Indexes & Constraints:
+- ix_orders_customer (Index on "CustomerId")
+- ix_orders_status (Index on "Status")
+- ix_orders_created (Index on "CreatedAt")
+- fk_orders_customer (FOREIGN KEY to customers("Id"))
+- chk_orders_total (TotalAmount >= 0)
+
+Seed Data:
+- 6 Realistic Orders for Customer 1 covering every lifecycle status:
+  - Order 1: Pending
+  - Order 2: Confirmed
+  - Order 3: Processing
+  - Order 4: Shipped
+  - Order 5: Delivered
+  - Order 6: Cancelled
+
+-------------------------------------------------------------------------------
+
+10. ORDER_ITEMS
+---------------
+Purpose: Individual vendor line items inside an order, enabling multi-vendor splitting and fulfillment.
+
+Columns:
+- Id                    UUID            PRIMARY KEY
+- OrderId               UUID            NOT NULL, FOREIGN KEY REFERENCES orders("Id") ON DELETE CASCADE
+- ProductId             UUID            NOT NULL, FOREIGN KEY REFERENCES products("Id")
+- DealerId              UUID            NOT NULL, FOREIGN KEY REFERENCES dealers("Id")
+- Quantity              INTEGER         NOT NULL, CHECK ("Quantity" > 0)
+- UnitPriceAtPurchase   DECIMAL(10,2)   NOT NULL, CHECK ("UnitPriceAtPurchase" >= 0)
+- Subtotal              DECIMAL(12,2)   NOT NULL, CHECK ("Subtotal" >= 0)
+- CreatedAt             TIMESTAMPTZ     NOT NULL DEFAULT NOW()
+- UpdatedAt             TIMESTAMPTZ     NOT NULL DEFAULT NOW()
+
+Indexes & Constraints:
+- ix_order_items_order (Index on "OrderId")
+- ix_order_items_dealer (Index on "DealerId")
+- fk_order_items_order (FOREIGN KEY to orders("Id") ON DELETE CASCADE)
+- fk_order_items_product (FOREIGN KEY to products("Id"))
+- fk_order_items_dealer (FOREIGN KEY to dealers("Id"))
+- chk_order_items_quantity (Quantity > 0)
+- chk_order_items_unit_price (UnitPriceAtPurchase >= 0)
+- chk_order_items_subtotal (Subtotal >= 0)

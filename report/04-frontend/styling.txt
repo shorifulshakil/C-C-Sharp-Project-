@@ -1,0 +1,67 @@
+FRONTEND DESIGN SYSTEM & STYLING SPECIFICATION
+=================================================
+
+Framework: Tailwind CSS 3.4
+Typography: Google Fonts 'Inter' via next/font/google
+Design Paradigm: Modern Glassmorphism, Sleek Dark/Light Elevation, Vibrant Gradients
+
+===============================================================================
+1. COLOR PALETTE & DESIGN TOKENS
+===============================================================================
+
+Primary Brand (Indigo Spectrum):
+- primary-50:  #eef2ff
+- primary-100: #e0e7ff
+- primary-200: #c7d2fe
+- primary-500: #6366f1
+- primary-600: #4f46e5 (Brand Action Primary)
+- primary-700: #4338ca
+- primary-900: #312e81
+
+Secondary Accent (Violet / Purple Spectrum):
+- accent-500:  #8b5cf6
+- accent-600:  #7c3aed
+
+Semantic Indicators:
+- Success (Emerald): #10b981 (Approved, Delivered, Completed)
+- Warning (Amber):   #f59e0b (Pending Moderation, Processing)
+- Danger (Rose):     #ef4444 (Rejected, Cancelled, Deletion)
+- Info (Sky/Blue):   #0284c7 (Shipped, Confirmed)
+
+Neutral Grayscale (Zinc / Slate):
+- Background Light:  #f8fafc (slate-50)
+- Surface Cards:     #ffffff with subtle border #e2e8f0 (slate-200)
+- Text Headings:     #0f172a (slate-900)
+- Text Body:         #334155 (slate-700)
+- Text Muted:        #64748b (slate-500)
+
+===============================================================================
+2. VISUAL EFFECTS & COMPONENT STYLING
+===============================================================================
+
+1. Modern Gradients & Backgrounds:
+   - Auth Login Hero: 'bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900'
+   - Brand Buttons: 'bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500'
+   - Ambient Glow: Radial gradient backdrops with blur filters ('blur-3xl opacity-30')
+
+2. Glassmorphism & Elevation:
+   - Backdrop Filter: 'backdrop-blur-md bg-white/80 dark:bg-slate-900/80'
+   - Card Shadow Hierarchy:
+     - Default: 'shadow-sm border border-slate-200/80 rounded-xl'
+     - Hover Hover: 'hover:shadow-md hover:border-indigo-200 transition-all duration-200'
+     - Floating Modals: 'shadow-2xl border border-slate-100'
+
+3. Micro-Animations & Interactions:
+   - Button Transitions: 'transition duration-150 ease-in-out active:scale-98'
+   - Progress Bar: Keyframe animation with dynamic width progression and pulsing glow.
+   - Skeletons: Shimmer pulse animation ('animate-pulse bg-slate-200')
+   - Status Badges: Pill shapes ('rounded-full px-2.5 py-0.5 text-xs font-semibold')
+
+===============================================================================
+3. RESPONSIVE BREAKPOINTS
+===============================================================================
+
+- Mobile: sm (< 640px) - Single column layouts, collapsible mobile navigation drawer.
+- Tablet: md (640px - 1024px) - 2-column card grids, condensed sidebars.
+- Desktop: lg & xl (1024px - 1280px) - Full persistent sidebar navigation, 3 to 4 column catalog grids.
+- Wide Display: 2xl (> 1536px) - Max-width container constraints (max-w-7xl) centered with auto margins.

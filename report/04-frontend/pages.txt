@@ -1,0 +1,164 @@
+FRONTEND PAGES & ROUTING ARCHITECTURE
+======================================
+
+Framework: Next.js 14 (App Router)
+Language: TypeScript, React 18
+Styling: Tailwind CSS, Lucide React Icons
+Architecture: Modular App Router with Role-Based Layouts
+Total Routes: 24+ Active Pages
+
+===============================================================================
+1. STOREFRONT PUBLIC ROUTES (frontend/app/(shop))
+===============================================================================
+
+Route: / (Home Page)
+File: frontend/app/(shop)/page.tsx
+- Hero banner with dynamic gradients and dual CTA ('Shop Now', 'Become a Vendor').
+- Real-time statistics counters (500+ products, 100% verified dealers, 8 categories).
+- Curated category carousel and grid.
+- Dynamic featured products grid with responsive image lazy loading.
+- Value proposition badges (Free Shipping, Secure Checkout, 24/7 Support).
+
+Route: /products (Catalog Explorer)
+File: frontend/app/(shop)/products/page.tsx
+- Faceted multi-criteria filtering sidebar (Search, Category, Min/Max Price, Sort).
+- 3-column responsive product card grid.
+- Integrated skeleton loading states (ProductCardSkeleton).
+- Server-assisted pagination with total items indicator.
+
+Route: /products/[id] (Product Showcase)
+File: frontend/app/(shop)/products/[id]/page.tsx
+- Breadcrumb navigation path.
+- Interactive multi-image gallery with thumbnail selection.
+- Vendor trust badge and Shop Name attribution.
+- Dynamic quantity selector, real-time stock alert, and 'Add to Cart' animation.
+
+Route: /cart (Shopping Cart)
+File: frontend/app/(shop)/cart/page.tsx
+- Real-time cart synchronization with backend.
+- Inline quantity adjustments (+ / -) and item deletion.
+- Financial order summary breakdown (Subtotal, Tax estimate, Total).
+- Seamless transition to checkout.
+
+Route: /checkout (Order Placement)
+File: frontend/app/(shop)/checkout/page.tsx
+- Shipping address capture and pre-fill from user profile.
+- Order review accordion with line item breakdown.
+- Single-click atomic order placement with inventory lock and cart clearance.
+
+Route: /orders (Customer Order History)
+File: frontend/app/(shop)/orders/page.tsx
+- Order tracking cards with color-coded status badges (Pending, Confirmed, Processing, Shipped, Delivered, Cancelled).
+- Itemized invoice details, pricing, delivery destination, and timestamps.
+
+Route: /account (Customer Profile Management)
+File: frontend/app/(shop)/account/page.tsx
+- Personal information editor (Full Name, Phone, Shipping Address, AvatarUrl).
+- Security center for password updates.
+
+Route: /about (Platform Information)
+File: frontend/app/(shop)/about/page.tsx
+- Multi-vendor mission statement, core values, platform statistics, and leadership team.
+
+Route: /contact (Help & Support)
+File: frontend/app/(shop)/contact/page.tsx
+- Interactive contact form, live support channels, and expandable FAQ accordion.
+
+===============================================================================
+2. AUTHENTICATION ROUTES (frontend/app/auth)
+===============================================================================
+
+Route: /auth/login (Unified Portal Login)
+File: frontend/app/auth/login/page.tsx
+- Redesigned modern gradient aesthetic with ambient glassmorphism backdrop.
+- Interactive role switcher / one-click demo credentials loader (Admin, Dealer, Customer).
+- Form validation with animated error banners and sliding transitions.
+
+Route: /auth/register (Account Onboarding)
+File: frontend/app/auth/register/page.tsx
+- Dual-role registration toggle ('Register as Customer' vs 'Register as Dealer').
+- Dynamic field expansion for Dealer registration (Shop Name, Description, Category, Physical Address).
+- Explains vendor moderation requirements for dealers.
+
+===============================================================================
+3. DEALER WORKSPACE ROUTES (frontend/app/dealer)
+===============================================================================
+Protected by DealerLayout and Role Guard. Features global LoadingProgress bar.
+
+Route: /dealer/dashboard (Vendor Headquarters)
+File: frontend/app/dealer/dashboard/page.tsx
+- Top KPI statistics: Total Catalog Products, Revenue, Active Orders, Items Sold.
+- Approval status tracker (Approved vs Pending moderation).
+- Recent orders preview table with direct fulfillment shortcuts.
+
+Route: /dealer/products (Product Management)
+File: frontend/app/dealer/products/page.tsx
+- Status tab filters ('All', 'Approved', 'Pending', 'Rejected').
+- Product cards and table view with image thumbnails, prices, and stock counters.
+- Quick edit and delete actions with confirmation dialogs.
+
+Route: /dealer/products/new (Product Creator)
+File: frontend/app/dealer/products/new/page.tsx
+- Redesigned state-of-the-art product creation interface.
+- Integrated ImageUploadInput supporting drag-and-drop file upload, URL ingestion, and instant preview.
+- Category dropdown, dynamic SKU generator, inventory stock allocation, and pricing margin calculator.
+
+Route: /dealer/products/[id] (Product Editor)
+File: frontend/app/dealer/products/[id]/page.tsx
+- Pre-populated form fields with existing data.
+- Allows image updates, stock changes, and price adjustments with re-moderation notice.
+
+Route: /dealer/orders (Vendor Order Fulfillment)
+File: frontend/app/dealer/orders/page.tsx
+- View orders containing items fulfilled by this vendor.
+- Inline order status update controls (Confirm, Process, Ship) with transition validation.
+
+Route: /dealer/sales (Sales & Financial Analytics)
+File: frontend/app/dealer/sales/page.tsx
+- Total revenue analytics cards and items sold breakdown.
+- Sales-by-product breakdown with collapsible customer details (customer name, email, quantity, subtotal, and order date).
+
+Route: /dealer/profile (Shop & Identity Settings)
+File: frontend/app/dealer/profile/page.tsx
+- Redesigned profile and shop management UI.
+- Vendor avatar and shop logo image upload via ImageUploadInput.
+- Shop name, description, business category, address, and contact info editing.
+
+===============================================================================
+4. ADMINISTRATOR WORKSPACE ROUTES (frontend/app/admin)
+===============================================================================
+Protected by AdminLayout and Admin Role Guard. Features global LoadingProgress bar.
+
+Route: /admin/dashboard (Platform Overview)
+File: frontend/app/admin/dashboard/page.tsx
+- Redesigned executive dashboard with KPI counters (Total Users, Dealers, Customers, Products, Pending Approvals, Total Revenue).
+- Quick access to pending approvals and recent vendor applications.
+
+Route: /admin/dealers (Dealer Administration)
+File: frontend/app/admin/dealers/page.tsx
+- Comprehensive vendor directory with search and category filters.
+- Approve pending dealer applications with a single click.
+- Detail modal with dealer dossier, shop info, and associated customer breakdown.
+- Direct dealer creation and edit modal.
+
+Route: /admin/products (Catalog Moderation Queue)
+File: frontend/app/admin/products/page.tsx
+- Grouped-by-dealer pending products moderation interface.
+- High-resolution image preview, pricing, and category validation.
+- One-click 'Approve' or 'Reject' with mandatory rejection feedback modal.
+
+Route: /admin/categories (Taxonomy Manager)
+File: frontend/app/admin/categories/page.tsx
+- Category CRUD operations with parent-child hierarchy support.
+
+Route: /admin/users (Customer Directory)
+File: frontend/app/admin/users/page.tsx
+- Customer accounts table with active status toggle (Ban / Unban).
+
+Route: /admin/stats (Platform Analytics)
+File: frontend/app/admin/stats/page.tsx
+- Analytical charts, sales velocity, and platform growth metrics.
+
+Route: /admin/profile (Administrator Settings)
+File: frontend/app/admin/profile/page.tsx
+- Admin personal profile update with avatar support and credentials management.

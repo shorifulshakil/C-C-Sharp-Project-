@@ -1,0 +1,94 @@
+DEALER (VENDOR) WORKSPACE FEATURES & CAPABILITIES
+==================================================
+
+Role: Dealer
+Primary Demo Account: dealer1@test.com / Dealer@123 (Alex Tech - AlexTechs Shop)
+Workspace Base Route: /dealer/*
+
+===============================================================================
+1. VENDOR HEADQUARTERS DASHBOARD (/dealer/dashboard)
+===============================================================================
+
+- High-Level KPI Summary Cards:
+  * Total Products in Catalog
+  * Approved & Published Products (Active in Storefront)
+  * Products Pending Moderation (Awaiting Admin Review)
+  * Rejected Products (Flagged for Review)
+  * Financial Performance: Total Revenue ($), Total Orders, Units Sold.
+- Live Storefront Status Indicator: Displays dealer verification state (Approved vs Pending).
+- Recent Products Table: Quick-view of recently submitted listings.
+- Action Shortcuts: Quick navigation to 'Add Product', 'Sales Analytics', 'Fulfillment Orders', and 'Shop Profile'.
+- Integrated LoadingProgress: Real-time dynamic visual loading feedback.
+
+===============================================================================
+2. PRODUCT CATALOG MANAGEMENT (/dealer/products)
+===============================================================================
+
+- Multi-Tab Filtering:
+  * 'All Products' tab
+  * 'Approved' tab (live on customer store)
+  * 'Pending' tab (moderation queue)
+  * 'Rejected' tab (with viewable admin rejection notes)
+- Product Actions:
+  * Edit listing details, pricing, inventory stock, and media.
+  * Delete product with safe modal confirmation.
+  * Preview live storefront presentation.
+
+===============================================================================
+3. NEXT-GEN PRODUCT CREATOR (/dealer/products/new)
+===============================================================================
+
+- State-of-the-Art Creator UI:
+  * Title, Description, and Category Selection.
+  * Pricing & Inventory Controls: Real-time profit margin and stock balance calculator.
+  * Automatic SKU generation helper based on vendor shop initials.
+  * Integrated ImageUploadInput:
+    - Dual-mode image sourcing: Local file drag-and-drop / file picker (encoded to Base64) OR external CDN URL.
+    - Real-time thumbnail preview with remove/replace capability.
+- Moderation Lifecycle Safeguards:
+  * Products are automatically initialized with ApprovalStatus = 'Pending'.
+  * Notifies the vendor that listings require administrator moderation before becoming public.
+
+===============================================================================
+4. SALES & REVENUE ANALYTICS (/dealer/sales)
+===============================================================================
+
+- Aggregate Financial Metrics:
+  * Cumulative Revenue earned across all fulfilled order items.
+  * Total Distinct Orders and Total Units Sold.
+- Product Sales Breakdown:
+  * Itemized table of best-selling products with thumbnail, unit price, total volume, and gross revenue.
+  * Expandable Customer Breakdown:
+    - Clicking any product reveals the list of customers who bought it.
+    - Displays buyer name, email address, order timestamp, quantity purchased, and subtotal.
+
+===============================================================================
+5. ORDER FULFILLMENT & LIFECYCLE MANAGEMENT (/dealer/orders)
+===============================================================================
+
+- Vendor-Specific Order Ingestion:
+  * Displays orders containing line items fulfilled by this dealer.
+  * Breakdown of product items, quantities, shipping addresses, and order timestamps.
+- Direct Status Transitions:
+  * Vendor can update order status: e.g., 'Confirm' -> 'Processing' -> 'Shipped'.
+  * Strict Finite-State Machine (FSM) validation prevents invalid status leaps.
+  * Validates dealer ownership so vendors can only manage orders containing their own items.
+
+===============================================================================
+6. VENDOR CUSTOMERS ROSTER (API: GET /api/dealers/customers)
+===============================================================================
+
+- Access a consolidated roster of all distinct customers who have ordered from this shop.
+- Displays buyer contact information, total orders placed, and cumulative spend.
+
+===============================================================================
+7. SHOP PROFILE & BRANDING (/dealer/profile)
+===============================================================================
+
+- Redesigned Profile Management:
+  * Shop Identity: Shop Name, Category, Description, and Physical Address.
+  * Owner Identity: Full Name, Phone, and Email.
+  * Media Management:
+    - Personal Owner Avatar upload (via ImageUploadInput).
+    - Shop Branding Logo upload.
+  * Real-time preview of vendor branding card.

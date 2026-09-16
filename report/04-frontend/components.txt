@@ -1,0 +1,116 @@
+FRONTEND UI & LAYOUT COMPONENT SPECIFICATION
+=============================================
+
+Component Architecture: Custom Design System built with Tailwind CSS and Lucide React
+Location: frontend/components/ui/ & frontend/components/layout/
+TypeScript Support: Fully Typed Props & Generic Interfaces
+
+===============================================================================
+1. UI KIT COMPONENTS (frontend/components/ui/)
+===============================================================================
+
+1. LoadingProgress
+   File: components/ui/LoadingProgress.tsx
+   Purpose: Global animated progress indicator with multi-stage dynamic status labels.
+   Features:
+   - Smooth simulated progression with cubic-bezier easing.
+   - Dynamic status messages ("Connecting to server...", "Fetching data...", "Rendering components...").
+   - Pulsing glow effects and customizable progress bar themes.
+   - Automatically injected across Admin and Dealer workspaces.
+   Props: isLoading: boolean, customMessage?: string, onComplete?: () => void
+
+2. ImageUploadInput
+   File: components/ui/ImageUploadInput.tsx
+   Purpose: Versatile media input supporting local file upload and external URL linking.
+   Features:
+   - Dual-tab interface: 'Upload File' (Drag-and-Drop / File Picker) vs 'Image URL'.
+   - Client-side FileReader encoding directly to Base64 data URLs.
+   - Instant visual preview thumbnail with remove/replace capability.
+   - Integrated error handling for unsupported file formats and file size caps.
+   Props: value?: string, onChange: (value: string) => void, label?: string, helperText?: string
+
+3. Modal
+   File: components/ui/Modal.tsx
+   Purpose: Accessible overlay dialog with background backdrop blur.
+   Enhanced Sizes: 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', 'full'.
+   Features: Escape key listener, click-outside-to-close, sticky modal header and action footer.
+   Props: isOpen: boolean, onClose: () => void, title?: string, size?: ModalSize, children: ReactNode
+
+4. Button
+   File: components/ui/Button.tsx
+   Purpose: Standardized interactive action triggers.
+   Variants: 'primary' (indigo/blue gradient), 'secondary' (neutral outline), 'danger' (crimson), 'ghost'.
+   Sizes: 'sm', 'md', 'lg'.
+   Features: Built-in spinner when isLoading is true, disabled state styling.
+
+5. Input
+   File: components/ui/Input.tsx
+   Props: label, type, value, onChange, placeholder, error, leftIcon, rightElement, disabled.
+   Features: Floating label styling, error message transitions, focus ring highlights.
+
+6. Textarea
+   File: components/ui/Textarea.tsx
+   Props: label, value, onChange, placeholder, rows, error.
+
+7. Select
+   File: components/ui/Select.tsx
+   Props: label, value, onChange, options: { value, label }[], error.
+
+8. Badge
+   File: components/ui/Badge.tsx
+   Purpose: Visual status tags with contextual semantic colors:
+   - Approved / Delivered: Emerald / Green
+   - Pending / Processing: Amber / Yellow
+   - Shipped / Confirmed: Blue / Cyan
+   - Rejected / Cancelled: Rose / Red
+
+9. Card
+   File: components/ui/Card.tsx
+   Purpose: Content container with subtle border, shadow elevation, and padding tokens.
+   Sub-components: Card, CardHeader, CardBody, CardFooter.
+
+10. ConfirmDialog
+    File: components/ui/ConfirmDialog.tsx
+    Purpose: Modal confirmation for destructive operations (product deletions, order cancellations).
+    Props: isOpen, onClose, onConfirm, title, message, confirmText, isDestructive.
+
+11. Table
+    File: components/ui/Table.tsx
+    Purpose: Responsive tabular data display with hover effects and striped styling.
+    Props: columns: ColumnDef<T>[], data: T[], onRowClick?: (row: T) => void.
+
+12. Pagination
+    File: components/ui/Pagination.tsx
+    Props: currentPage, totalPages, onPageChange.
+    Features: Page number truncation (...), previous/next arrow triggers.
+
+13. Skeletons & Fallbacks
+    - ProductCardSkeleton.tsx: Animated shimmer placeholder for catalog cards.
+    - ProductDetailSkeleton.tsx: Full-page showcase shimmer placeholder.
+    - ProductGridSkeleton.tsx: Responsive grid layout of card skeletons.
+    - Spinner.tsx: SVG circular loader.
+    - EmptyState.tsx: Illustrated fallback view when queries return 0 records.
+
+===============================================================================
+2. LAYOUT COMPONENTS (frontend/components/layout/)
+===============================================================================
+
+1. Navbar (Navbar.tsx)
+   - Storefront top bar featuring brand logo, category links, search input, and cart counter.
+   - Dynamic user session menu (Account, Orders, Dealer Dashboard, Admin Panel, Logout).
+   - Responsive mobile navigation drawer.
+
+2. Footer (Footer.tsx)
+   - Multi-column footer with brand identity, customer service links, vendor registration CTA,
+     newsletter signup, and copyright credentials.
+
+3. Sidebar (Sidebar.tsx)
+   - Workspace navigation drawer for Admin and Dealer consoles.
+   - Active route highlighting, collapsible sections, and notification counters.
+
+4. DashboardLayout (DashboardLayout.tsx)
+   - Shared shell for Admin and Dealer workspaces.
+   - Integrates Sidebar, Topbar with profile avatar, and content container.
+
+5. ShopLayout (ShopLayout.tsx)
+   - Public storefront shell wrapping pages with Navbar and Footer.

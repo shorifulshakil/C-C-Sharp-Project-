@@ -1,0 +1,94 @@
+MASTER SEED DATA SUMMARY & STRATEGY
+=====================================
+
+The database is seeded using the master migration script: SQL/master.sql
+Host: Supabase PostgreSQL (AWS ap-south-1)
+Seed Version: 3.0 (Clean Master Demo Configuration)
+
+Design Philosophy of the Master Dataset:
+Rather than generating confusing, fragmented records across multiple mock vendors, the master configuration assigns 550 realistic products and all order cycles to one primary verified dealer ('Alex Tech') and one primary authenticated customer ('John Buyer'). This provides a reliable, reproducible showcase environment for live demonstrations, automated testing, and evaluation.
+
+===============================================================================
+RECORD COUNTS & CREDENTIALS
+===============================================================================
+
+1. ADMIN ACCOUNTS
+-----------------
+Total: 1 Record
+- Email: admin@ecommerce.com
+- Password: Admin@123 (BCrypt hash: $2a$11$S2ZoaWf3hknWcI/Og0uzg.vHxucE3fJcbHU91qFAH/p.tYRX4heWy)
+- Full Name: System Admin
+- Phone: +1000000000
+- Role: Admin
+- Status: IsActive = TRUE
+- ID: b1000000-0000-0000-0000-000000000001
+
+2. DEALER ACCOUNTS
+------------------
+Total: 1 Primary Verified Dealer (+ supports dynamic registration via /auth/register)
+- Email: dealer1@test.com
+- Password: Dealer@123 (BCrypt hash: $2a$11$Lx9F4rmuo3l6ujspZS4w4OLWOjfwrsgpzVB2vcXvrGwAYdqAO795q)
+- Full Name: Alex Tech
+- Shop Name: AlexTechs Shop
+- Category: Electronics
+- Phone: +1000001001
+- Address: 456 Commerce Ave, Business District
+- Status: IsApproved = TRUE, IsActive = TRUE
+- ID: c2000000-0000-0000-0000-000000000001
+
+3. CUSTOMER ACCOUNTS
+--------------------
+Total: 1 Primary Active Customer (+ supports dynamic registration via /auth/register)
+- Email: customer1@test.com
+- Password: Customer@123 (BCrypt hash: $2a$11$IYBD96EyES3aYh5pEcMqkOAHFt.2boQuF4TnQrLgxB3hj7KI1K2te)
+- Full Name: John Buyer
+- Phone: +1000002001
+- Shipping Address: 123 Demo Street, Demo City, Country
+- Status: IsActive = TRUE
+- ID: c3000000-0000-0000-0000-000000000001
+
+4. CATEGORIES
+-------------
+Total: 8 Core Categories
+| # | Name           | Description                          | ID                                   |
+|---|----------------|--------------------------------------|--------------------------------------|
+| 1 | Electronics    | Electronic devices and accessories   | a1000000-0000-0000-0000-000000000001 |
+| 2 | Clothing       | Fashion and apparel                  | a1000000-0000-0000-0000-000000000002 |
+| 3 | Home & Garden  | Home improvement and garden supplies | a1000000-0000-0000-0000-000000000003 |
+| 4 | Books          | Books and educational materials      | a1000000-0000-0000-0000-000000000004 |
+| 5 | Sports         | Sports equipment and accessories     | a1000000-0000-0000-0000-000000000005 |
+| 6 | Toys           | Toys and games for all ages          | a1000000-0000-0000-0000-000000000006 |
+| 7 | Automotive     | Car parts and accessories            | a1000000-0000-0000-0000-000000000007 |
+| 8 | Health         | Health and wellness products         | a1000000-0000-0000-0000-000000000008 |
+
+5. PRODUCTS & IMAGES
+--------------------
+Total Products: 550
+Total Images: 550 (1:1 primary image per product with Picsum seed CDN)
+- Distribution:
+  - 500 Base Catalog Products: Spanning all 8 categories.
+    - Approval Statuses: ~60% Approved, ~20% Pending approval, ~20% Rejected.
+    - Prices: $5.00 to $500.00.
+    - SKUs: SKU-ALEX-001 through SKU-ALEX-500.
+  - 50 Extra Feature Products: Spanning fast-moving consumer items (chargers, lamps, audio).
+    - Statuses: 80% Approved, 20% Pending.
+    - SKUs: SKU-ALEX-EX-001 through SKU-ALEX-EX-050.
+
+6. SHOPPING CARTS & CART ITEMS
+------------------------------
+- Active Cart ID: d3000000-0000-0000-0000-000000000001 assigned to Customer 1.
+- Provides immediate cart readiness for testing item additions and checkout transitions.
+
+7. ORDERS & ORDER ITEMS
+-----------------------
+Total Orders: 6
+Total Order Items: ~12 to 18 line items
+Each order contains between 1 and 3 randomized approved products from Dealer 1.
+Lifecycle Status Coverage:
+- Order #1: Pending (Newly submitted by Customer 1)
+- Order #2: Confirmed (Acknowledged order)
+- Order #3: Processing (Dealer preparing inventory)
+- Order #4: Shipped (In-transit to customer)
+- Order #5: Delivered (Fulfilled transaction)
+- Order #6: Cancelled (Voided order example)
+Total Amounts: Dynamically calculated via SQL subtotal summation ("UnitPriceAtPurchase" * "Quantity").

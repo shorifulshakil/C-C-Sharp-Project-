@@ -1,0 +1,244 @@
+KEY ARCHITECTURAL CODE SAMPLES
+===============================
+
+This document features curated source code excerpts illustrating Clean Architecture, domain modelling, order state machine enforcement, modern React components, and secure database mapping.
+
+===============================================================================
+1. DOMAIN LAYER: ENTITY WITH ATTRIBUTION (Dealer.cs)
+===============================================================================
+File: backend/src/ECommerce.Domain/Entities/Dealer.cs
+
+```csharp
+using System.ComponentModel.DataAnnotations;
+
+namespace ECommerce.Domain.Entities;
+
+public class Dealer : BaseEntity
+{
+    [MaxLength(256)]
+    public string Email { get; set; } = string.Empty;
+
+    public string PasswordHash { get; set; } = string.Empty;
+
+    [MaxLength(256)]
+    public string FullName { get; set; } = string.Empty;
+
+    [MaxLength(32)]
+    public string? Phone { get; set; }
+
+    public string? AvatarUrl { get; set; }
+
+    [MaxLength(256)]
+    public string ShopName { get; set; } = string.Empty;
+
+    public string? ShopDescription { get; set; }
+
+    [MaxLength(128)]
+    public string ShopCategory { get; set; } = string.Empty;
+
+    public string Address { get; set; } = string.Empty;
+
+    public string? LogoUrl { get; set; }
+
+    public bool IsApproved { get; set; } = false;
+
+    public bool IsActive { get; set; } = true;
+
+    public ICollection<Product> Products { get; set; } = new List<Product>();
+    public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+}
+```
+
+===============================================================================
+2. APPLICATION LAYER: FINITE-STATE MACHINE ORDER STATUS UPDATE (OrderService.cs)
+===============================================================================
+File: backend/src/ECommerce.Application/Services/OrderService.cs
+
+```csharp
+public async Task<OrderResponse> UpdateStatusAsync(Guid orderId, string status, Guid? dealerId = null)
+{
+    var order = await LoadOrderWithIncludes(orderId)
+        ?? throw new KeyNotFoundException("Order not found.");
+
+    // Tenancy check: Ensure dealer only modifies orders containing their own items
+    if (dealerId.HasValue)
+    {
+        var isDealerOrder = order.Items.Any(i => i.DealerId == dealerId.Value);
+        if (!isDealerOrder)
+        {
+            throw new UnauthorizedAccessException("Dealer is not authorized to update this order.");
+        }
+    }
+
+    if (!Enum.TryParse<OrderStatus>(status, true, out var newStatus))
+        throw new ArgumentException("Invalid order status.");
+
+    // Strict Finite-State Machine transitions
+    var allowedTransitions = new Dictionary<OrderStatus, OrderStatus[]>
+    {
+        [OrderStatus.Pending] = new[] { OrderStatus.Confirmed, OrderStatus.Cancelled },
+        [OrderStatus.Confirmed] = new[] { OrderStatus.Processing, OrderStatus.Cancelled },
+        [OrderStatus.Processing] = new[] { OrderStatus.Shipped, OrderStatus.Cancelled },
+        [OrderStatus.Shipped] = new[] { OrderStatus.Delivered },
+        [OrderStatus.Delivered] = Array.Empty<OrderStatus>(),
+        [OrderStatus.Cancelled] = Array.Empty<OrderStatus>()
+    };
+
+    if (!allowedTransitions[order.Status].Contains(newStatus))
+        throw new InvalidOperationException($"Cannot transition from {order.Status} to {newStatus}.");
+
+    order.Status = newStatus;
+    order.UpdatedAt = DateTime.UtcNow;
+    await _unitOfWork.Orders.UpdateAsync(order);
+    await _unitOfWork.SaveChangesAsync();
+
+    return await MapToResponseAsync(order);
+}
+```
+
+===============================================================================
+3. PRESENTATION LAYER: DEALER API CONTROLLER (DealerController.cs)
+===============================================================================
+File: backend/src/ECommerce.API/Controllers/DealerController.cs
+
+```csharp
+[ApiController]
+[Route("api/dealers")]
+[Authorize(Roles = "Dealer")]
+public class DealerController : ControllerBase
+{
+    private readonly IDealerService _dealerService;
+    private readonly IProductService _productService;
+    private readonly IOrderService _orderService;
+    private readonly IAdminService _adminService;
+
+    // ... Constructor injection ...
+
+    [HttpGet("sales")]
+    public async Task<IActionResult> GetSales()
+    {
+        var userId = GetUserId();
+        var sales = await _orderService.GetDealerSalesAsync(userId);
+        return Ok(sales);
+    }
+
+    [HttpGet("customers")]
+    public async Task<IActionResult> GetCustomers()
+    {
+        var userId = GetUserId();
+        var customers = await _adminService.GetDealerCustomersAsync(userId);
+        return Ok(new { items = customers, total = customers.Count });
+    }
+
+    [HttpPut("orders/{id}/status")]
+    public async Task<IActionResult> UpdateOrderStatus(Guid id, [FromBody] UpdateOrderStatusRequest request)
+    {
+        var userId = GetUserId();
+        var order = await _orderService.UpdateStatusAsync(id, request.Status, userId);
+        return Ok(order);
+    }
+}
+```
+
+===============================================================================
+4. FRONTEND UI: DUAL-MODE IMAGE UPLOADER (ImageUploadInput.tsx)
+===============================================================================
+File: frontend/components/ui/ImageUploadInput.tsx
+
+```tsx
+'use client';
+
+import React, { useState, useRef } from 'react';
+import { Upload, Link as LinkIcon, X, Image as ImageIcon } from 'lucide-react';
+
+interface ImageUploadInputProps {
+  value?: string;
+  onChange: (value: string) => void;
+  label?: string;
+  helperText?: string;
+}
+
+export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({
+  value = '',
+  onChange,
+  label = 'Product Image',
+  helperText = 'Upload a high quality image (JPG, PNG, WebP) or enter an external URL.'
+}) => {
+  const [activeTab, setActiveTab] = useState<'upload' | 'url'>('upload');
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = (file: File) => {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (typeof e.target?.result === 'string') {
+        onChange(e.target.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div className="space-y-2">
+      {label && <label className="block text-sm font-medium text-slate-700">{label}</label>}
+      {/* Tab switch, dropzone, and live thumbnail preview */}
+      {value ? (
+        <div className="relative inline-block border rounded-xl overflow-hidden group">
+          <img src={value} alt="Preview" className="h-36 w-36 object-cover" />
+          <button
+            type="button"
+            onClick={() => onChange('')}
+            className="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-full opacity-90 hover:opacity-100"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      ) : (
+        /* Dropzone component with drag-and-drop */
+        <div
+          onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+          onDragLeave={() => setDragActive(false)}
+          onDrop={(e) => { e.preventDefault(); setDragActive(false); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); }}
+          className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition ${
+            dragActive ? 'border-indigo-500 bg-indigo-50' : 'border-slate-300 hover:border-slate-400'
+          }`}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <Upload className="mx-auto h-8 w-8 text-slate-400 mb-2" />
+          <p className="text-sm font-medium text-slate-700">Click to upload or drag and drop</p>
+          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
+        </div>
+      )}
+    </div>
+  );
+};
+```
+
+===============================================================================
+5. DATABASE: MASTER SEED SCRIPT EXCERPT (SQL/master.sql)
+===============================================================================
+File: SQL/master.sql
+
+```sql
+-- Role Segregation Schema Definition
+CREATE TABLE dealers (
+    "Id"                UUID PRIMARY KEY,
+    "Email"             VARCHAR(256) NOT NULL,
+    "PasswordHash"      TEXT NOT NULL,
+    "FullName"          VARCHAR(256) NOT NULL,
+    "Phone"             VARCHAR(32),
+    "AvatarUrl"         TEXT,
+    "ShopName"          VARCHAR(256) NOT NULL,
+    "ShopDescription"   TEXT,
+    "ShopCategory"      VARCHAR(128) NOT NULL,
+    "Address"           TEXT NOT NULL,
+    "LogoUrl"           TEXT,
+    "IsApproved"        BOOLEAN NOT NULL DEFAULT FALSE,
+    "IsActive"          BOOLEAN NOT NULL DEFAULT TRUE,
+    "CreatedAt"         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    "UpdatedAt"         TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX ix_dealers_email ON dealers ("Email");
+```

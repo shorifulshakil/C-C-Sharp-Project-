@@ -1,0 +1,267 @@
+ENTITY RELATIONSHIP DIAGRAM (ERD) & DATA ARCHITECTURE
+======================================================
+
+Schema Version: 3.0 (Dedicated Role Tables + Media/Avatar Support)
+Database Engine: PostgreSQL 14+ / Supabase
+
+1. TEXT-BASED ASCII ER DIAGRAM
+==============================
+
+    ┌─────────────┐
+    │    ADMINS    │
+    │─────────────│
+    │ Id (PK)     │
+    │ Email (UQ)  │
+    │ PasswordHash│
+    │ FullName    │
+    │ Phone       │
+    │ AvatarUrl   │
+    │ IsActive    │
+    │ CreatedAt   │
+    │ UpdatedAt   │
+    └─────────────┘
+
+    ┌─────────────────────┐         ┌─────────────────┐
+    │      DEALERS        │         │    CATEGORIES    │
+    │─────────────────────│         │─────────────────│
+    │ Id (PK)             │         │ Id (PK)         │
+    │ Email (UQ)          │         │ Name (UQ)       │
+    │ PasswordHash        │         │ Description     │
+    │ FullName            │         │ ParentCategoryId│──┐
+    │ Phone               │         │ CreatedAt       │  │
+    │ AvatarUrl           │         │ UpdatedAt       │  │
+    │ ShopName            │         └────────┬────────┘  │
+    │ ShopDescription     │                  │           │
+    │ ShopCategory        │                  │ 1         │ (Self-ref)
+    │ Address             │                  │           │
+    │ LogoUrl             │                  │           │
+    │ IsApproved          │                  │ N         │
+    │ IsActive            │                  ▼           ▼
+    │ CreatedAt           │         ┌─────────────────┐
+    │ UpdatedAt           │         │    PRODUCTS     │
+    └──────────┬──────────┘         │─────────────────│
+               │                    │ Id (PK)         │
+               │ 1                  │ DealerId (FK)   │
+               │                    │ CategoryId (FK) │
+               │ N                  │ Name            │
+               ├───────────────────>│ Description     │
+               │                    │ Price           │
+               │                    │ StockQuantity   │
+               │                    │ Sku (UQ)        │
+               │                    │ ApprovalStatus  │
+               │                    │ RejectionReason │
+               │                    │ PublishedAt     │
+               │                    │ CreatedAt       │
+               │                    │ UpdatedAt       │
+               │                    └────────┬────────┘
+               │                             │ 1
+               │                             │
+               │                             │ N
+               │                             ▼
+               │                    ┌─────────────────┐
+               │                    │ PRODUCT_IMAGES  │
+               │                    │─────────────────│
+               │                    │ Id (PK)         │
+               │                    │ ProductId (FK)  │
+               │                    │ ImageUrl        │
+               │                    │ DisplayOrder    │
+               │                    │ CreatedAt       │
+               │                    │ UpdatedAt       │
+               │                    └─────────────────┘
+               │
+               │
+    ┌──────────┴──────────┐         ┌─────────────────┐
+    │     CUSTOMERS       │         │      CARTS      │
+    │─────────────────────│         │─────────────────│
+    │ Id (PK)             │ 1     1 │ Id (PK)         │
+    │ Email (UQ)          │────────>│ CustomerId (FK) │
+    │ PasswordHash        │         │ CreatedAt       │
+    │ FullName            │         │ UpdatedAt       │
+    │ Phone               │         └────────┬────────┘
+    │ AvatarUrl           │                  │ 1
+    │ ShippingAddress     │                  │
+    │ IsActive            │                  │ N
+    │ CreatedAt           │                  ▼
+    │ UpdatedAt           │         ┌─────────────────┐
+    └──────────┬──────────┘         │   CART_ITEMS    │
+               │                    │─────────────────│
+               │ 1                  │ Id (PK)         │
+               │                    │ CartId (FK)     │
+               │                    │ ProductId (FK)  │
+               │ N                  │ Quantity        │
+               ▼                    │ PriceAtAdd      │
+    ┌─────────────────────┐         │ CreatedAt       │
+    │       ORDERS        │         │ UpdatedAt       │
+    │─────────────────────│         └─────────────────┘
+    │ Id (PK)             │
+    │ CustomerId (FK)     │
+    │ Status              │
+    │ TotalAmount         │
+    │ ShippingAddress     │
+    │ CreatedAt           │
+    │ UpdatedAt           │
+    └──────────┬──────────┘
+               │ 1
+               │
+               │ N
+               ▼
+    ┌─────────────────────┐
+    │     ORDER_ITEMS     │
+    │─────────────────────│
+    │ Id (PK)             │
+    │ OrderId (FK)        │
+    │ ProductId (FK)      │◄──────── [References PRODUCTS.Id]
+    │ DealerId (FK)       │◄──────── [References DEALERS.Id]
+    │ Quantity            │
+    │ UnitPriceAtPurchase │
+    │ Subtotal            │
+    │ CreatedAt           │
+    │ UpdatedAt           │
+    └─────────────────────┘
+
+===============================================================================
+2. MERMAID DIAGRAM CODE
+===============================================================================
+
+erDiagram
+    ADMINS {
+        uuid Id PK
+        varchar Email UK
+        text PasswordHash
+        varchar FullName
+        varchar Phone
+        text AvatarUrl
+        boolean IsActive
+        timestamptz CreatedAt
+        timestamptz UpdatedAt
+    }
+
+    DEALERS ||--o{ PRODUCTS : "creates / owns"
+    DEALERS ||--o{ ORDER_ITEMS : "fulfills"
+    DEALERS {
+        uuid Id PK
+        varchar Email UK
+        text PasswordHash
+        varchar FullName
+        varchar Phone
+        text AvatarUrl
+        varchar ShopName
+        text ShopDescription
+        varchar ShopCategory
+        text Address
+        text LogoUrl
+        boolean IsApproved
+        boolean IsActive
+        timestamptz CreatedAt
+        timestamptz UpdatedAt
+    }
+
+    CUSTOMERS ||--|| CARTS : "owns"
+    CUSTOMERS ||--o{ ORDERS : "places"
+    CUSTOMERS {
+        uuid Id PK
+        varchar Email UK
+        text PasswordHash
+        varchar FullName
+        varchar Phone
+        text AvatarUrl
+        text ShippingAddress
+        boolean IsActive
+        timestamptz CreatedAt
+        timestamptz UpdatedAt
+    }
+
+    CATEGORIES ||--o{ PRODUCTS : "classifies"
+    CATEGORIES ||--o{ CATEGORIES : "parent of"
+    CATEGORIES {
+        uuid Id PK
+        varchar Name UK
+        text Description
+        uuid ParentCategoryId FK
+        timestamptz CreatedAt
+        timestamptz UpdatedAt
+    }
+
+    PRODUCTS ||--o{ PRODUCT_IMAGES : "has"
+    PRODUCTS ||--o{ CART_ITEMS : "added in"
+    PRODUCTS ||--o{ ORDER_ITEMS : "ordered in"
+    PRODUCTS {
+        uuid Id PK
+        varchar Name
+        text Description
+        decimal Price
+        int StockQuantity
+        varchar Sku UK
+        varchar ApprovalStatus
+        text RejectionReason
+        timestamptz PublishedAt
+        uuid DealerId FK
+        uuid CategoryId FK
+        timestamptz CreatedAt
+        timestamptz UpdatedAt
+    }
+
+    PRODUCT_IMAGES {
+        uuid Id PK
+        uuid ProductId FK
+        text ImageUrl
+        int DisplayOrder
+        timestamptz CreatedAt
+        timestamptz UpdatedAt
+    }
+
+    CARTS ||--o{ CART_ITEMS : "contains"
+    CARTS {
+        uuid Id PK
+        uuid CustomerId FK
+        timestamptz CreatedAt
+        timestamptz UpdatedAt
+    }
+
+    CART_ITEMS {
+        uuid Id PK
+        uuid CartId FK
+        uuid ProductId FK
+        int Quantity
+        decimal PriceAtAdd
+        timestamptz CreatedAt
+        timestamptz UpdatedAt
+    }
+
+    ORDERS ||--o{ ORDER_ITEMS : "comprises"
+    ORDERS {
+        uuid Id PK
+        uuid CustomerId FK
+        varchar Status
+        decimal TotalAmount
+        text ShippingAddress
+        timestamptz CreatedAt
+        timestamptz UpdatedAt
+    }
+
+    ORDER_ITEMS {
+        uuid Id PK
+        uuid OrderId FK
+        uuid ProductId FK
+        uuid DealerId FK
+        int Quantity
+        decimal UnitPriceAtPurchase
+        decimal Subtotal
+        timestamptz CreatedAt
+        timestamptz UpdatedAt
+    }
+
+===============================================================================
+3. CARDINALITIES & CONSTRAINTS SUMMARY
+===============================================================================
+
+- Admins: Standalone security accounts.
+- Dealers to Products: 1-to-Many (ON DELETE RESTRICT to protect product and order integrity).
+- Categories to Products: 1-to-Many.
+- Products to Product Images: 1-to-Many (ON DELETE CASCADE).
+- Customers to Carts: 1-to-1 (UNIQUE CustomerId, ON DELETE CASCADE).
+- Carts to Cart Items: 1-to-Many (ON DELETE CASCADE, Composite UNIQUE on CartId + ProductId).
+- Customers to Orders: 1-to-Many.
+- Orders to Order Items: 1-to-Many (ON DELETE CASCADE).
+- Products to Order Items: 1-to-Many (ON DELETE RESTRICT - order history preserves bought items).
+- Dealers to Order Items: 1-to-Many (Direct dealer linkage enables multi-vendor order routing & sales aggregation).

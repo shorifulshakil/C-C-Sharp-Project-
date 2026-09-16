@@ -1,0 +1,25 @@
+PROJECT OVERVIEW & EXECUTIVE SUMMARY
+====================================
+
+Project Name: Multi-Vendor E-Commerce Platform
+Domain: E-Commerce Enterprise Software Architecture
+Target: Production-Ready University Capstone Project
+Developer: md.prantoislam
+
+Core Problem Addressed:
+Traditional single-vendor online stores lack the operational flexibility to host independent sellers while safeguarding catalog quality and customer trust. Conversely, uncontrolled open marketplaces are prone to counterfeit products, spam listings, and inconsistent fulfillment.
+
+Solution Architecture:
+A robust, enterprise-grade multi-vendor platform featuring strict 3-tier role isolation:
+1. Administrator: Controls platform governance, vendor onboarding, taxonomy, user moderation, and product catalog approval.
+2. Dealer (Vendor): Manages individual shop profiles, branding, inventory, product creation, direct sales metrics, and multi-vendor order fulfillment.
+3. Customer: Explores unified catalog with multi-criteria faceted filtering, real-time shopping cart synchronization, atomic checkout, and multi-stage order lifecycle tracking.
+
+Primary Architectural Benchmark:
+- The Dealer Product Approval Workflow: Vendor listings start in 'Pending' state and are hidden from the storefront until formally reviewed and approved by an administrator, maintaining flawless catalog integrity.
+
+Key Technical Accomplishments:
+- Backend: ASP.NET Core Web API (.NET 9.0) adhering strictly to Clean Architecture (Domain, Application, Infrastructure, Presentation).
+- Database: Cloud-hosted PostgreSQL on Supabase with 10 optimized tables, strong foreign key constraints, check constraints, composite indexes, and role-segregated authentication tables.
+- Frontend: Next.js 14 App Router, TypeScript, React 18, and Tailwind CSS with custom responsive design system, dynamic LoadingProgress animations, and client-side image encoding.
+- Security: Stateless JWT authentication with role claim guards, BCrypt password hashing, and endpoint-level vendor data tenancy validation.
